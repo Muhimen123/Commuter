@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "app": "Commuter",
+    "system": "Material 3 (Material You)",
+    "platform": "Flutter (mobile)",
+    "seed_color": "#307082",
+    "notes": "Use ColorScheme.fromSeed(seedColor: primary) as baseline, then override roles below to preserve brand identity."
+  },
+
+  "color": {
+    "brand": {
+      "primary": "#307082",
+      "accent": "#12212E",
+      "background": "#ECE7DC",
+      "surface": "#F9F9F9",
+      "text": "#2D3436"
+    },
+    "safety": {
+      "safe": "#6CA3A2",
+      "warning": "#E49940",
+      "danger": "#FF7675"
+    },
+    "m3_roles_light": {
+      "primary": "#307082",
+      "onPrimary": "#FFFFFF",
+      "primaryContainer": "#B8DEE0",
+      "onPrimaryContainer": "#0A2226",
+      "secondary": "#4A6268",
+      "onSecondary": "#FFFFFF",
+      "secondaryContainer": "#CCE6E8",
+      "onSecondaryContainer": "#051F22",
+      "surface": "#F9F9F9",
+      "onSurface": "#2D3436",
+      "surfaceVariant": "#DDE4E3",
+      "onSurfaceVariant": "#414947",
+      "background": "#ECE7DC",
+      "onBackground": "#2D3436",
+      "outline": "#71797A",
+      "error": "#FF7675",
+      "onError": "#FFFFFF",
+      "errorContainer": "#FFDAD9",
+      "onErrorContainer": "#410002"
+    },
+    "usage_rules": [
+      "Never hardcode hex values in widgets — reference Theme.of(context).colorScheme.<role>.",
+      "Map safety_safe/warning/danger to custom ColorScheme extensions (ThemeExtension), not to error/primary roles directly.",
+      "Maintain WCAG AA contrast (4.5:1 body text, 3:1 large text) for all onX/X pairs."
+    ]
+  },
+
+  "typography": {
+    "font_family": "Inter",
+    "fallback_fonts": ["Roboto", "system-ui"],
+    "scale": {
+      "displayLarge":  { "size": 57, "weight": 400, "lineHeight": 64 },
+      "displayMedium": { "size": 45, "weight": 400, "lineHeight": 52 },
+      "displaySmall":  { "size": 36, "weight": 400, "lineHeight": 44 },
+      "headlineLarge": { "size": 32, "weight": 600, "lineHeight": 40 },
+      "headlineMedium":{ "size": 28, "weight": 600, "lineHeight": 36 },
+      "headlineSmall": { "size": 24, "weight": 600, "lineHeight": 32 },
+      "titleLarge":    { "size": 22, "weight": 500, "lineHeight": 28 },
+      "titleMedium":   { "size": 16, "weight": 500, "lineHeight": 24 },
+      "titleSmall":    { "size": 14, "weight": 500, "lineHeight": 20 },
+      "bodyLarge":     { "size": 16, "weight": 400, "lineHeight": 24 },
+      "bodyMedium":    { "size": 14, "weight": 400, "lineHeight": 20 },
+      "bodySmall":     { "size": 12, "weight": 400, "lineHeight": 16 },
+      "labelLarge":    { "size": 14, "weight": 500, "lineHeight": 20 },
+      "labelMedium":   { "size": 12, "weight": 500, "lineHeight": 16 },
+      "labelSmall":    { "size": 11, "weight": 500, "lineHeight": 16 }
+    },
+    "usage_rules": [
+      "Screen titles: headlineSmall or titleLarge.",
+      "Body copy minimum: bodyMedium (14px). Never go below labelSmall (11px) anywhere.",
+      "Buttons/labels: labelLarge.",
+      "Map overlay text (over imagery): always paired with a scrim or SurfaceTint container for legibility."
+    ]
+  },
+
+  "spacing": {
+    "unit": 8,
+    "scale": {
+      "xs": 4,
+      "sm": 8,
+      "md": 16,
+      "lg": 24,
+      "xl": 32,
+      "xxl": 48
+    },
+    "screen_padding_horizontal": 16,
+    "usage_rules": [
+      "All spacing values must come from this scale. No arbitrary px values.",
+      "Minimum horizontal screen padding: 16px (md) on all non-map full-bleed screens."
+    ]
+  },
+
+  "radius": {
+    "none": 0,
+    "extra_small": 4,
+    "small": 8,
+    "medium": 12,
+    "large": 16,
+    "extra_large": 28,
+    "full": 999,
+    "usage_rules": [
+      "M3 standard range is 12-28px for cards/sheets/dialogs — use 'medium' to 'extra_large'.",
+      "Buttons and chips: 'full' (pill) or 'large'.",
+      "Bottom sheets: top corners only, 'extra_large' (28px)."
+    ]
+  },
+
+  "elevation": {
+    "level0": { "shadow": "none", "surfaceTint": 0.0 },
+    "level1": { "shadow": "0 1px 2px rgba(0,0,0,0.08)", "surfaceTint": 0.05 },
+    "level2": { "shadow": "0 1px 3px rgba(0,0,0,0.10)", "surfaceTint": 0.08 },
+    "level3": { "shadow": "0 2px 6px rgba(0,0,0,0.12)", "surfaceTint": 0.11 },
+    "usage_rules": [
+      "Prefer tonal surface elevation (SurfaceTint) over heavy shadows, per M3 and this app's spec.",
+      "Map overlay components (FAB, top app bar, bottom sheet) use level2-3 for separation from the map."
+    ]
+  },
+
+  "sizing": {
+    "touch_target_min": 48,
+    "bottom_nav_height": 80,
+    "top_app_bar_height": 64,
+    "fab_size_default": 56,
+    "fab_size_small": 40,
+    "button_height": 40,
+    "input_field_height": 56,
+    "icon_size_default": 24
+  },
+
+  "motion": {
+    "duration_short": "100ms",
+    "duration_medium": "300ms",
+    "duration_long": "500ms",
+    "easing_standard": "cubic-bezier(0.2, 0.0, 0, 1.0)",
+    "usage_rules": [
+      "Bottom sheets and modals: duration_medium with easing_standard.",
+      "Micro-interactions (button press, toggle): duration_short."
+    ]
+  },
+
+  "accessibility": {
+    "min_contrast_body": 4.5,
+    "min_contrast_large_text": 3.0,
+    "min_touch_target_px": 48,
+    "support_dynamic_type": true,
+    "support_dark_mode": true
+  }
+}
