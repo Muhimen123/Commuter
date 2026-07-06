@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../widgets/auth_text_field.dart';
 
@@ -80,7 +81,7 @@ class LoginPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/signup');
+                      context.push('/signup');
                     },
                     child: Text(
                       'Need an account? Sign up',

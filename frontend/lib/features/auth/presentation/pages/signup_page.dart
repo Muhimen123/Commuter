@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../widgets/auth_text_field.dart';
 
@@ -85,7 +86,7 @@ class SignupPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      context.pop();
                     },
                     child: Text(
                       'Already have an account? Log in',
