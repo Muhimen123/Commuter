@@ -39,6 +39,29 @@ class AuthTextField extends StatelessWidget {
             hintStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
           ),
         ),
       ],

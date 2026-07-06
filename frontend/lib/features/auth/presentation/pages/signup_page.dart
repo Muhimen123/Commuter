@@ -74,6 +74,12 @@ class SignupPage extends StatelessWidget {
                     onPressed: () {
                       // TODO: Implement signup logic
                     },
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
