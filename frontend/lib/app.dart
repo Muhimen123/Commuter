@@ -5,6 +5,7 @@ import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/shared/widgets/placeholder_page.dart';
+import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -48,7 +49,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) =>
-                  const PlaceholderPage(title: 'Profile'),
+                  const ProfilePage(),
             ),
           ],
         ),

@@ -27,8 +27,8 @@ class AppTheme {
       onErrorContainer: const Color(0xFF410002),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      labelTextStyle: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
