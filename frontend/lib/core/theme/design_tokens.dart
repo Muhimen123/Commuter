@@ -45,7 +45,7 @@ class AppColors {
   static const Color onSurface = Color(0xFF2D3436);
   static const Color surfaceVariant = Color(0xFFDDE4E3);
   static const Color onSurfaceVariant = Color(0xFF414947);
-  static const Color background = Color(0xFFECE7DC);
+  static const Color background = Color(0xFFD9EAFA);
   static const Color onBackground = Color(0xFF2D3436);
   static const Color outline = Color(0xFF71797A);
   static const Color error = Color(0xFFFF7675);

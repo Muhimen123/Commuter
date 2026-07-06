@@ -53,7 +53,7 @@ class AppTheme {
       onSurface: const Color(0xFF2D3436),
       surfaceContainerHigh: const Color(0xFFDDE4E3),
       onSurfaceVariant: const Color(0xFF414947),
-      surfaceContainer: const Color(0xFFECE7DC),
+      surfaceContainer: const Color(0xFFD9EAFA),
       outline: const Color(0xFF71797A),
       error: const Color(0xFFFF7675),
       onError: const Color(0xFFFFFFFF),
@@ -85,16 +85,18 @@ class AppTheme {
       labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, height: 16 / 11),
     ),
     cardTheme: CardThemeData(
-      elevation: 1,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
-      color: const Color(0xFFF9F9F9),
+      color: const Color(0xFFF0F0F0), // A slightly darker, professional light grey
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(AppSizing.buttonHeight),
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+        ),
         backgroundColor: const Color(0xFF307082),
         foregroundColor: const Color(0xFFFFFFFF),
         textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
