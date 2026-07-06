@@ -67,7 +67,7 @@ class LoginPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     onPressed: () {
-                      // TODO: Implement login logic
+                      context.go('/');
                     },
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
