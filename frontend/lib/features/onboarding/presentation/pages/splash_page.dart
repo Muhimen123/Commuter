@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class SplashPage extends StatelessWidget {
@@ -53,7 +54,7 @@ class SplashPage extends StatelessWidget {
                           'Your personal safety companion for every journey.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                         ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0),
 
@@ -64,7 +65,7 @@ class SplashPage extends StatelessWidget {
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                // Navigate to Onboarding/Home
+                                context.go('/home');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
