@@ -26,6 +26,20 @@ class AppTheme {
       errorContainer: const Color(0xFFFFDAD9),
       onErrorContainer: const Color(0xFF410002),
     ),
+    navigationBarTheme: NavigationBarThemeData(
+      labelTextStyle: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          );
+        }
+        return const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        );
+      }),
+    ),
   );
 
   // For dark theme, you might want to define m3_roles_dark in DESIGN_TOKENS.json
