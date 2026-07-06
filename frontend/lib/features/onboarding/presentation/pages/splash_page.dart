@@ -65,7 +65,7 @@ class SplashPage extends StatelessWidget {
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                context.go('/home');
+                                context.go('/signup');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
@@ -89,7 +89,7 @@ class SplashPage extends StatelessWidget {
 
                             TextButton(
                               onPressed: () {
-                                // Navigate to Log In
+                                context.go('/login');
                               },
                               style: TextButton.styleFrom(
                                 minimumSize: const Size(double.infinity, 40),
