@@ -8,7 +8,11 @@ class PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
       body: Center(child: Text(title)),
     );
   }

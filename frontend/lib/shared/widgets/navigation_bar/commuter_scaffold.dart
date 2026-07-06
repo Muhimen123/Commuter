@@ -10,13 +10,15 @@ class CommuterScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: SizedBox(
+      bottomNavigationBar: Container(
+        color: Theme.of(context).colorScheme.surface,
         height: 70,
         child: NavigationBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           indicatorShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(4),
           ),
           destinations: const [
             NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
