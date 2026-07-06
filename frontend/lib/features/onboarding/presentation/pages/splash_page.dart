@@ -71,7 +71,9 @@ class SplashPage extends StatelessWidget {
                                 backgroundColor: Colors.white,
                                 foregroundColor: AppColors.primary,
                                 minimumSize: const Size(double.infinity, 48),
-                                shape: const StadiumBorder(),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 elevation: 0,
                               ),
                               child: Text(
