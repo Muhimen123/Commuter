@@ -3,6 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
+// New Pages
+import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
+import 'package:frontend/features/auth/presentation/pages/login_page.dart';
+import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
+
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/shared/widgets/placeholder_page.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
@@ -55,8 +60,22 @@ final GoRouter _router = GoRouter(
         ),
       ],
     ),
+    // Auth and Onboarding Routes
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashPage(),
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignupPage(),
+    ),
   ],
 );
+
 class CommuterApp extends StatelessWidget {
   const CommuterApp({super.key});
 
@@ -64,6 +83,7 @@ class CommuterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Commuter App',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
