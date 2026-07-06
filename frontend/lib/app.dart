@@ -1,22 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'core/theme/app_theme.dart';
-import 'features/onboarding/presentation/pages/splash_page.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
+// New Pages
+import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
 
+import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
+import 'package:frontend/shared/widgets/placeholder_page.dart';
+import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
+
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter _router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashPage(),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          CommuterScaffold(navigationShell: navigationShell),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) =>
+                  const MapPage(title: 'Map'),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/planner',
+              builder: (context, state) =>
+                  const PlaceholderPage(title: 'Planner'),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/safety',
+              builder: (context, state) =>
+                  const PlaceholderPage(title: 'Safety'),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) =>
+                  const ProfilePage(),
+            ),
+          ],
+        ),
+      ],
     ),
+    // Auth and Onboarding Routes
     GoRoute(
-      path: '/home',
-      builder: (context, state) => const HomePage(title: 'Commuter Home'),
+      path: '/splash',
+      builder: (context, state) => const SplashPage(),
     ),
     GoRoute(
       path: '/login',

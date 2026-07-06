@@ -28,6 +28,20 @@ class AppTheme {
       errorContainer: const Color(0xFFFFDAD9),
       onErrorContainer: const Color(0xFF410002),
     ),
+    navigationBarTheme: NavigationBarThemeData(
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          );
+        }
+        return const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        );
+      }),
+    ),
     textTheme: GoogleFonts.interTextTheme(),
     extensions: [
       SafetyColors(
