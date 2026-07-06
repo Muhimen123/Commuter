@@ -72,7 +72,7 @@ class SignupPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     onPressed: () {
-                      // TODO: Implement signup logic
+                      context.go('/');
                     },
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
@@ -92,7 +92,7 @@ class SignupPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                   TextButton(
                     onPressed: () {
-                      context.pop();
+                      context.push('/login');
                     },
                     child: Text(
                       'Already have an account? Log in',
