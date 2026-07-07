@@ -28,3 +28,9 @@ lib/
 ## Technical Constraints
 - Framework: Flutter
 - Mapping: Google Maps Platform
+
+## Design and Development Guidelines
+When making any changes to the application, you MUST consult and adhere to the following project standards:
+- **`SOUL.md`**: Principles and core philosophy of the application.
+- **`DESIGN_SYSTEM.md`**: Established UI patterns and component usage.
+- **`DESIGN_TOKENS.json`**: Strict adherence to design tokens (colors, spacing, typography) for all styling.
