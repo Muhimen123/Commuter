@@ -143,7 +143,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       effects: [
         // Entrance: Drive from left to center
         MoveEffect(
-          delay: 3.seconds,
+          delay: 5.seconds,
           begin: const Offset(-500, 0),
           end: Offset.zero,
           duration: 1500.ms,
