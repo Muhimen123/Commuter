@@ -60,6 +60,12 @@ class SignupPage extends StatelessWidget {
                           ),
                           SizedBox(height: AppSpacing.lg),
                           AuthTextField(
+                            label: 'Phone Number',
+                            hintText: '+1 234 567 8900',
+                            keyboardType: TextInputType.phone,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          AuthTextField(
                             label: 'Password',
                             hintText: '••••••••',
                             obscureText: true,

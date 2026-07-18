@@ -24,7 +24,7 @@ class CommuterScaffold extends StatelessWidget {
             NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
             NavigationDestination(
               icon: Icon(Icons.directions_bus),
-              label: 'Planner',
+              label: 'Ride',
             ),
             NavigationDestination(icon: Icon(Icons.shield), label: 'Safety'),
             NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),

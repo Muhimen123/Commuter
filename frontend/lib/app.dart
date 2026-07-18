@@ -7,6 +7,7 @@ import 'package:frontend/features/map/presentation/pages/map_page.dart';
 import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
+import 'package:frontend/features/ride_discovery/presentation/pages/ride_discovery_page.dart';
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/shared/widgets/placeholder_page.dart';
@@ -36,7 +37,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/planner',
               builder: (context, state) =>
-                  const PlaceholderPage(title: 'Planner'),
+                  const RideDiscoveryPage(),
             ),
           ],
         ),
