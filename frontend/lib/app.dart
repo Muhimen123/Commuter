@@ -11,6 +11,7 @@ import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/shared/widgets/placeholder_page.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
+import 'package:frontend/features/safety/presentation/pages/safety_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -27,7 +28,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/',
               builder: (context, state) =>
-                  const MapPage(title: 'Map'),
+                  const MapPage(title: 'Home'),
             ),
           ],
         ),
@@ -36,7 +37,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/planner',
               builder: (context, state) =>
-                  const PlaceholderPage(title: 'Planner'),
+                  const PlaceholderPage(title: 'Ride'),
             ),
           ],
         ),
@@ -45,7 +46,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/safety',
               builder: (context, state) =>
-                  const PlaceholderPage(title: 'Safety'),
+                  const SafetyPage(),
             ),
           ],
         ),

@@ -1,0 +1,285 @@
+<!DOCTYPE html><html class="light" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#8ecdff",
+                        "outline-variant": "#c0c7d0",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9ff",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#40484f",
+                        "primary-fixed": "#cbe6ff",
+                        "tertiary-fixed-dim": "#dbc766",
+                        "on-tertiary-fixed": "#211b00",
+                        "surface-container-highest": "#e1e2e8",
+                        "on-background": "#191c20",
+                        "outline": "#707880",
+                        "primary-container": "#006494",
+                        "on-primary-fixed": "#001e30",
+                        "surface-container": "#eceef3",
+                        "secondary-container": "#d4e4f6",
+                        "inverse-surface": "#2e3135",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#d4e4f6",
+                        "primary-fixed-dim": "#8ecdff",
+                        "secondary": "#51606f",
+                        "on-tertiary-container": "#4a3f00",
+                        "surface-dim": "#d8dae0",
+                        "on-secondary-container": "#576675",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#eff0f6",
+                        "on-tertiary-fixed-variant": "#524600",
+                        "surface-container-low": "#f2f3f9",
+                        "on-primary-container": "#b6ddff",
+                        "on-primary-fixed-variant": "#004b71",
+                        "surface-variant": "#e1e2e8",
+                        "tertiary": "#6d5e00",
+                        "secondary-fixed-dim": "#b9c8da",
+                        "primary": "#004b71",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#006494",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-container": "#beab4e",
+                        "surface-container-high": "#e7e8ee",
+                        "surface": "#f8f9ff",
+                        "on-surface": "#191c20",
+                        "on-secondary-fixed": "#0d1d2a",
+                        "on-secondary-fixed-variant": "#394857",
+                        "tertiary-fixed": "#f8e37f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-tablet": "24px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Libre Franklin"],
+                        "title-md": ["Libre Franklin"],
+                        "label-lg": ["Libre Franklin"],
+                        "body-lg": ["Libre Franklin"],
+                        "body-md": ["Libre Franklin"],
+                        "title-lg": ["Libre Franklin"],
+                        "label-md": ["Libre Franklin"],
+                        "headline-lg": ["Libre Franklin"],
+                        "headline-lg-mobile": ["Libre Franklin"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script></head><body class="bg-surface text-on-surface font-body-md min-h-screen pb-24 md:pb-0 md:pl-[360px]">
+<!-- Navigation Drawer (Desktop) -->
+<nav class="hidden md:flex bg-surface-container-low dark:bg-surface-container-low h-full w-[360px] rounded-r-xl shadow-xl fixed inset-y-0 left-0 z-[60] flex-col py-md">
+<div class="px-4 mb-8">
+<h1 class="font-headline-lg text-headline-lg text-primary">Commuter</h1>
+<div class="flex items-center gap-4 mt-6 p-4 bg-surface-container rounded-xl">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A professional headshot of a commuter user, realistic, modern corporate lighting, isolated on a light grey background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6BO4e2meFdpGvGc6rI4hKDTwEzO6FHW0CK56YhWVOKEOaCCdnskuJEqXQdU5QBAGAzJO39_F9nx1iQqnkuVzWZ7J9b0iOf1Aeg27vUoxrYGgSiWBRVIsRJzHe4AjjQ1lcZyVq6sAWoDULmn2EXVrtrxHpeZdpcWo-mWU0lZDnHD2ScbxLGXhetAvm8M0x0QJDxaf2LRqr4ZlDigUqHlZqG2HMlRDNjuBjyGrK9ovhvhmMBspHJAUo">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Commuter User</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Gold Tier Member</p>
+</div>
+</div>
+</div>
+<ul class="flex-1 space-y-2">
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full mx-3 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-container-high dark:hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-lg text-label-lg">Route Planner</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full mx-3 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-container-high dark:hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+<span class="font-label-lg text-label-lg">Saved Stops</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full mx-3 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-container-high dark:hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-lg text-label-lg">Travel History</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-full mx-3 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-container-high dark:hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-lg text-label-lg">Help &amp; Support</span>
+</a>
+</li>
+</ul>
+<div class="p-4 mt-auto">
+<span class="font-label-md text-label-md text-on-surface-variant">v2.4.0</span>
+</div>
+</nav>
+<!-- Top App Bar (Mobile) -->
+<header class="md:hidden bg-surface dark:bg-surface w-full top-0 sticky shadow-sm flex items-center justify-between px-margin-mobile h-16 z-50">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-full" data-icon="menu">menu</button>
+<span class="font-title-lg text-title-lg text-primary dark:text-primary-fixed-dim">Commuter</span>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small circular avatar placeholder for a user profile, minimalist design, soft lighting, light grey background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARoF6NV80bfuycTiWEyGhT3c5LCrdbXf2isnogP2e3DWxGjj-_VdPadhd_XMc5o5yU8W797fglRbiMD2A_PUioNlqOQaNjNaAs5C0ey0Urfji5Ehd_836echLKbzRmh0YMlwzw7595ZU2s7kLBXDHrnGdcs_IpiAA0fWDLuoTENnBMldt4QH_FJvwl5IPb6J7k1N0pcUYhGKHOoME9aHSxj7kJ8Hvy9q0npb6f0hr4LZTAG9L4Us1H">
+</header>
+<main class="w-full flex-1 relative flex flex-col">
+<!-- Map Section -->
+<div class="relative w-full h-[60vh] md:h-[65vh] bg-surface-container flex-shrink-0">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90" data-alt="A stylized digital map of a city focusing on transit routes, with varying zones highlighted in soft yellow and red hues indicating safety levels. Clean, modern interface style." data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBkEOWNWtudYypqTOK2TjByXpdBs4sY6KG0LFz96QMPeWQ5ZeDjWVqaDtunaHKQIFzuy2uNe-xgnCd1JBnSgxgJ6020p-7V5o4Kf7nb6Xlsc1usIkB0HICyZO2Bt3HRaTVV-0skD-Cnq2z3ryqRcNrHL8lStiCkxUSyvdOCIbr_uw1Hm_4StWIsZAhpQ2twUWDFZLlCOUVFjMc9z7KRapRlI6dbSesWnCwIN2P1BYsxjOdOGGiuKph">
+<div class="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+<div class="bg-surface/95 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-outline-variant max-w-sm">
+<label class="flex items-center gap-3 cursor-pointer">
+<div class="relative">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-outline after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+<span class="font-title-md text-title-md text-on-surface">Safety Heatmap</span>
+</label>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 text-sm">Overlay known incidents and secure zones.</p>
+</div>
+</div>
+<div class="absolute bottom-12 right-4 flex flex-col gap-4 z-10">
+<button class="bg-error text-on-error font-title-md text-title-md px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 hover:bg-error/90 transition-colors active:scale-95 border border-error-container">
+<span class="material-symbols-outlined" data-icon="report">report</span>
+                    Report Incident
+                </button>
+<button class="bg-tertiary-container text-on-tertiary-container font-title-md text-title-md px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 hover:bg-tertiary-fixed transition-colors active:scale-95 border border-tertiary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="emergency" style="font-variation-settings: 'FILL' 1;">emergency</span>
+                    Emergency Assist
+                </button>
+</div>
+</div>
+<!-- Draggable Bottom Sheet -->
+<div class="relative bg-surface rounded-t-[32px] -mt-8 pt-4 px-4 pb-8 md:px-8 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] z-20 flex-1 flex flex-col">
+<!-- Drag Handle -->
+<div class="w-12 h-1.5 bg-outline-variant/50 rounded-full mx-auto mb-6"></div>
+<!-- Header -->
+<div class="mb-6 px-2">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">Safety Dashboard</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Monitor your journey and manage emergency contacts.</p>
+</div>
+<!-- Quick Action Alert -->
+<div class="bg-tertiary-container/30 border border-tertiary-container rounded-xl p-4 flex items-start gap-3 mb-6">
+<span class="material-symbols-outlined text-tertiary mt-1" data-icon="info">info</span>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">Transit Alert</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Minor delays on the Blue Line due to signal maintenance. Areas remain secure.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
+<!-- Filled Card: Currently Sharing With -->
+<div class="bg-surface-container rounded-xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.08)]">
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="share_location">share_location</span>
+                                Sharing With
+                            </h2>
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+</div>
+<ul class="space-y-4">
+<li class="flex items-center justify-between bg-surface p-3 rounded-lg shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small circular avatar placeholder for a user profile, minimalist design, soft lighting, light grey background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB41nEWTbXXoRfx11oBH2RwjJrpE_C84zKUENtTQzTmtdaWzMzLsWfRfldq7nq9g1FqCYimG3GyigC9tT7xjdikOVaeJAskFnY5w-ck5-uqsrHdUafv1UzE5c59wVQtoIfDBTqp2AaYkrVqTkFthAMyWCI5qgHxpgHt1QxlKNqMQcGJfGEYvODl83x1uPLEo6_tHgArwbx5YD1Lw9p2ju1DwA_5rkvQa1r3a4rd0_PbxQaF3AFez2el">
+<div>
+<p class="font-title-md text-title-md text-on-surface">Sarah Johnson</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-xs">Active tracking</p>
+</div>
+</div>
+<button class="text-error hover:bg-error-container p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+</li>
+<li class="flex items-center justify-between bg-surface p-3 rounded-lg shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-title-md text-title-md">
+                                        MR
+                                    </div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Mark Roberts</p>
+<p class="font-body-md text-body-md text-on-surface-variant text-xs">Active tracking</p>
+</div>
+</div>
+<button class="text-error hover:bg-error-container p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+</li>
+</ul>
+<button class="w-full mt-6 py-3 border border-outline text-on-surface font-label-lg text-label-lg rounded-full hover:bg-surface-variant transition-colors flex justify-center items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+                            Add Contact
+                        </button>
+</div>
+<!-- Outlined Card: Safety Survey History -->
+<div class="border border-outline-variant rounded-xl p-6 bg-surface">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="fact_check">fact_check</span>
+                                Safety Survey History
+                            </h2>
+<button class="text-primary font-label-lg text-label-lg hover:underline">View All</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-start justify-between p-3 rounded-lg hover:bg-surface-container-lowest transition-colors border border-transparent hover:border-outline-variant cursor-pointer">
+<div>
+<p class="font-title-md text-title-md text-on-surface">Evening Train Commute</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Central Station to North Hills • Oct 24</p>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md text-label-md">Felt Safe</span>
+</div>
+<div class="flex items-start justify-between p-3 rounded-lg hover:bg-surface-container-lowest transition-colors border border-transparent hover:border-outline-variant cursor-pointer">
+<div>
+<p class="font-title-md text-title-md text-on-surface">Bus Route 42</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Downtown Loop • Oct 22</p>
+</div>
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md text-label-md">Neutral</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="md:hidden bg-surface-container dark:bg-surface-container fixed bottom-0 w-full z-50 rounded-t-none shadow-[0_-1px_3px_rgba(0,0,0,0.1)] fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-2">
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface-variant dark:text-on-surface-variant opacity-80 hover:bg-surface-variant dark:hover:bg-surface-variant rounded-full p-2 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface-variant dark:text-on-surface-variant opacity-80 hover:bg-surface-variant dark:hover:bg-surface-variant rounded-full p-2 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="directions_bus">directions_bus</span>
+<span class="font-label-md text-label-md">Ride</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1 hover:bg-surface-variant dark:hover:bg-surface-variant active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="shield" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="font-label-md text-label-md">Safety</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface-variant dark:text-on-surface-variant opacity-80 hover:bg-surface-variant dark:hover:bg-surface-variant rounded-full p-2 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</body></html>
