@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.title});
@@ -16,9 +17,7 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    controller = MapController(
-      initPosition: GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
-    );
+    controller = MapController();
   }
 
   @override
@@ -36,35 +35,18 @@ class _MapPageState extends State<MapPage> {
         backgroundColor: colorScheme.primaryContainer,
         title: Text(widget.title),
       ),
-      body: OSMFlutter(
-        controller: controller,
-        osmOption: OSMOption(
-          zoomOption: ZoomOption(
-            initZoom: 8,
-            minZoomLevel: 3,
-            maxZoomLevel: 19,
-            stepZoom: 1.0,
-          ),
-          userLocationMarker: UserLocationMaker(
-            personMarker: MarkerIcon(
-              icon: Icon(
-                Icons.person_pin_circle,
-                color: colorScheme.primary,
-                size: 48,
-              ),
-            ),
-            directionArrowMarker: MarkerIcon(
-              icon: Icon(
-                Icons.double_arrow,
-                size: 48,
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
-          // roadConfig: RoadOption(
-          //   roadColor: colorScheme.secondary,
-          // ),
+      body: FlutterMap(
+        mapController: controller,
+        options: const MapOptions(
+          initialCenter: LatLng(47.4358055, 8.4737324),
+          initialZoom: 8,
         ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.commuter.frontend',
+          ),
+        ],
       ),
     );
   }
