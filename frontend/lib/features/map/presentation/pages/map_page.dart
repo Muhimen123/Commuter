@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapPage extends StatefulWidget {
@@ -18,6 +20,20 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     controller = MapController();
+    _centerMapOnUser();
+  }
+
+  Future<void> _centerMapOnUser() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      controller.move(LatLng(position.latitude, position.longitude), 15);
+    } catch (e) {
+      debugPrint('Error getting current position: $e');
+    }
   }
 
   @override
@@ -46,6 +62,7 @@ class _MapPageState extends State<MapPage> {
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'com.commuter.frontend',
           ),
+          CurrentLocationLayer(),
         ],
       ),
     );
