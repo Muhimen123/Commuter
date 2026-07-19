@@ -30,7 +30,7 @@ class _MapPageState extends State<MapPage> {
           accuracy: LocationAccuracy.high,
         ),
       );
-      controller.move(LatLng(position.latitude, position.longitude), 15);
+      controller.move(LatLng(position.latitude, position.longitude), 17);
     } catch (e) {
       debugPrint('Error getting current position: $e');
     }
@@ -55,7 +55,7 @@ class _MapPageState extends State<MapPage> {
         mapController: controller,
         options: const MapOptions(
           initialCenter: LatLng(47.4358055, 8.4737324),
-          initialZoom: 8,
+          initialZoom: 17.0,
         ),
         children: [
           TileLayer(
