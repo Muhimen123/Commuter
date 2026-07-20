@@ -39,3 +39,8 @@ frontend/app.*.map.json
 frontend/android/app/debug
 frontend/android/app/profile
 frontend/android/app/release
+
+# For Agents 
+.agents/
+skills-lock.json
+*/TASKS.md
