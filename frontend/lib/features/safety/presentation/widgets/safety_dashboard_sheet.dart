@@ -14,8 +14,8 @@ class SafetyDashboardSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.4,
-      minChildSize: 0.4,
+      initialChildSize: 0.12,
+      minChildSize: 0.12,
       maxChildSize: maxChildSize,
       builder: (context, scrollController) {
         return Container(

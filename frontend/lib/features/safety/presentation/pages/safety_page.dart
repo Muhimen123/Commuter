@@ -88,7 +88,7 @@ class _SafetyPageState extends State<SafetyPage> {
 
             // 3. Floating Action Button (Report)
             Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.4 + 20, // Float just above the sheet peek
+              bottom: MediaQuery.of(context).size.height * 0.14 + 20, // Float just above the sheet peek
               right: 16,
               child: const SafetyReportButton(),
             ),
