@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -24,6 +25,57 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 500),
     )..repeat();
+    _checkLocationPermission();
+  }
+
+  Future<void> _checkLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _showPermissionDialog('Location Services Disabled', 'Please enable location services in your settings.');
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showPermissionDialog('Permission Denied', 'This app needs location access to function.');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showPermissionDialog(
+        'Permission Permanently Denied',
+        'Please enable location access in settings to use the app.',
+        isSettings: true,
+      );
+      return;
+    }
+  }
+
+  void _showPermissionDialog(String title, String message, {bool isSettings = false}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (isSettings) {
+                Geolocator.openAppSettings();
+              } else {
+                _checkLocationPermission();
+              }
+              Navigator.pop(context);
+            },
+            child: Text(isSettings ? 'Open Settings' : 'Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -33,6 +85,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   void _handleNavigation(String route) async {
+    // Check permission again before navigating
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      // Still no permission, block navigation
+      return;
+    }
+
     if (_isExiting) return;
     setState(() {
       _isExiting = true;
