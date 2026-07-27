@@ -3,14 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
-// New Pages
 import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
 import 'package:frontend/features/ride_discovery/presentation/pages/ride_discovery_page.dart';
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
-import 'package:frontend/shared/widgets/placeholder_page.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
 import 'package:frontend/features/safety/presentation/pages/safety_page.dart';
 

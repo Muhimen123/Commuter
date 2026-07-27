@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/password_text_field.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -54,10 +55,9 @@ class LoginPage extends StatelessWidget {
                             keyboardType: TextInputType.emailAddress,
                           ),
                           SizedBox(height: AppSpacing.lg),
-                          AuthTextField(
+                          PasswordTextField(
                             label: 'Password',
                             hintText: '••••••••',
-                            obscureText: true,
                           ),
                         ],
                       ),
