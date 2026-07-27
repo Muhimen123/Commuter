@@ -47,17 +47,6 @@ class SharingSection extends StatelessWidget {
             'https://i.pravatar.cc/150?u=mark',
             initials: 'MR',
           ),
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.person_add_alt_1_outlined),
-            label: const Text('Add Contact'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 52),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              side: BorderSide(color: Theme.of(context).colorScheme.outline),
-            ),
-          ),
         ],
       ),
     );
@@ -104,10 +93,6 @@ class SharingSection extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.close, color: Colors.red, size: 20),
           ),
         ],
       ),

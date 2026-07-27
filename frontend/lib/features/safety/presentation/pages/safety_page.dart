@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../widgets/safety_header.dart';
-import '../widgets/safety_heatmap_toggle.dart';
-import '../widgets/safety_report_button.dart';
-import '../widgets/safety_dashboard_sheet.dart';
+import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/safety/presentation/widgets/safety_header.dart';
+import 'package:frontend/features/safety/presentation/widgets/safety_heatmap_toggle.dart';
+import 'package:frontend/features/safety/presentation/widgets/safety_report_button.dart';
+import 'package:frontend/features/safety/presentation/widgets/safety_dashboard_sheet.dart';
 
 class SafetyPage extends StatefulWidget {
   const SafetyPage({super.key});

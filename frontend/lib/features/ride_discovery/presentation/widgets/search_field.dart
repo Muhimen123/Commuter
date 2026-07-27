@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/design_tokens.dart';
+import 'package:frontend/core/theme/design_tokens.dart';
 
 class RideSearchField extends StatelessWidget {
   final TextEditingController? controller;
