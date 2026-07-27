@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../data/photon_repository.dart';
 import '../widgets/map_search_field.dart';
 
 class MapPage extends StatefulWidget {
@@ -18,6 +20,11 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   late MapController controller;
   final TextEditingController _searchController = TextEditingController();
+  final PhotonRepository _photonRepository = PhotonRepository();
+  
+  Timer? _debounceTimer;
+  List<LocationSuggestion> _suggestions = [];
+  bool _isLoadingSuggestions = false;
   bool _hasRoute = false;
   String? _destinationName;
   List<LatLng> _routePoints = [];
@@ -42,8 +49,63 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    if (query.trim().isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _isLoadingSuggestions = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSuggestions = true;
+    });
+
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      final results = await _photonRepository.fetchSuggestions(query);
+      if (mounted) {
+        setState(() {
+          _suggestions = results;
+          _isLoadingSuggestions = false;
+        });
+      }
+    });
+  }
+
+  void _selectSuggestion(LocationSuggestion suggestion) {
+    _debounceTimer?.cancel();
+    _searchController.text = suggestion.name;
+    setState(() {
+      _suggestions = [];
+      _isLoadingSuggestions = false;
+    });
+
+    final dest = LatLng(suggestion.lat, suggestion.lon);
+    final center = controller.camera.center;
+
+    setState(() {
+      _destinationName = suggestion.name;
+      _hasRoute = true;
+      _routePoints = [
+        center,
+        LatLng((center.latitude + dest.latitude) / 2, (center.longitude + dest.longitude) / 2),
+        dest,
+      ];
+    });
+
+    controller.move(dest, 15.0);
+    FocusScope.of(context).unfocus();
+  }
+
   void _searchAndDraftRoute(String query) {
     if (query.trim().isEmpty) return;
+    _debounceTimer?.cancel();
+    setState(() {
+      _suggestions = [];
+      _isLoadingSuggestions = false;
+    });
     
     final center = controller.camera.center;
     final dest = LatLng(center.latitude + 0.008, center.longitude + 0.008);
@@ -64,10 +126,13 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _clearRoute() {
+    _debounceTimer?.cancel();
     setState(() {
       _hasRoute = false;
       _destinationName = null;
       _routePoints = [];
+      _suggestions = [];
+      _isLoadingSuggestions = false;
       _searchController.clear();
     });
     _centerMapOnUser();
@@ -75,6 +140,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     controller.dispose();
     _searchController.dispose();
     super.dispose();
@@ -134,8 +200,12 @@ class _MapPageState extends State<MapPage> {
             child: MapSearchField(
               controller: _searchController,
               onSubmitted: _searchAndDraftRoute,
+              onChanged: _onSearchChanged,
               onClear: _clearRoute,
               hasRoute: _hasRoute,
+              suggestions: _suggestions,
+              onSuggestionSelected: _selectSuggestion,
+              isLoading: _isLoadingSuggestions,
             ),
           ),
           if (_hasRoute)
