@@ -4,6 +4,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../widgets/map_search_field.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.title});
@@ -130,56 +131,11 @@ class _MapPageState extends State<MapPage> {
             top: topPadding + 12,
             left: 16,
             right: 16,
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadius.medium),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.search,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: _searchAndDraftRoute,
-                      decoration: InputDecoration(
-                        hintText: 'Where would you like to go?',
-                        hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  _hasRoute
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: _clearRoute,
-                        )
-                      : IconButton(
-                          icon: const Icon(Icons.arrow_forward),
-                          onPressed: () => _searchAndDraftRoute(_searchController.text),
-                        ),
-                  const SizedBox(width: 4),
-                ],
-              ),
+            child: MapSearchField(
+              controller: _searchController,
+              onSubmitted: _searchAndDraftRoute,
+              onClear: _clearRoute,
+              hasRoute: _hasRoute,
             ),
           ),
           if (_hasRoute)
