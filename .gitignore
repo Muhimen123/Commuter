@@ -43,5 +43,5 @@ frontend/android/app/release
 # For Agents 
 .agents/
 skills-lock.json
-*/TASKS.md
+TASKS.md
 .artifacts/
