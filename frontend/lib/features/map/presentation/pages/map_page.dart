@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../../core/theme/design_tokens.dart';
 import '../../data/photon_repository.dart';
 import '../widgets/map_search_field.dart';
 
@@ -26,7 +25,6 @@ class _MapPageState extends State<MapPage> {
   List<LocationSuggestion> _suggestions = [];
   bool _isLoadingSuggestions = false;
   bool _hasRoute = false;
-  String? _destinationName;
   List<LatLng> _routePoints = [];
 
   @override
@@ -86,7 +84,6 @@ class _MapPageState extends State<MapPage> {
     final center = controller.camera.center;
 
     setState(() {
-      _destinationName = suggestion.name;
       _hasRoute = true;
       _routePoints = [
         center,
@@ -111,7 +108,6 @@ class _MapPageState extends State<MapPage> {
     final dest = LatLng(center.latitude + 0.008, center.longitude + 0.008);
 
     setState(() {
-      _destinationName = query;
       _hasRoute = true;
       _routePoints = [
         center,
@@ -129,7 +125,6 @@ class _MapPageState extends State<MapPage> {
     _debounceTimer?.cancel();
     setState(() {
       _hasRoute = false;
-      _destinationName = null;
       _routePoints = [];
       _suggestions = [];
       _isLoadingSuggestions = false;
@@ -208,71 +203,6 @@ class _MapPageState extends State<MapPage> {
               isLoading: _isLoadingSuggestions,
             ),
           ),
-          if (_hasRoute)
-            Positioned(
-              bottom: 90,
-              left: 16,
-              right: 16,
-              child: Card(
-                elevation: 4,
-                color: colorScheme.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.large),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.directions_bus, color: colorScheme.primary),
-                              const SizedBox(width: AppSpacing.sm),
-                              Text(
-                                'Route to: ${_destinationName ?? "Destination"}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: _clearRoute,
-                          ),
-                        ],
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Est. Time: 24 min'),
-                              Text('Fare: \$2.50 • 2 transfers'),
-                            ],
-                          ),
-                          FilledButton.icon(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Starting navigation...')),
-                              );
-                            },
-                            icon: const Icon(Icons.navigation),
-                            label: const Text('Start'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
