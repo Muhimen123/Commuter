@@ -1,36 +1,85 @@
-# Project Context: Commuter App
+# Commuter App — Agent Instructions
 
-This is a Flutter public transit application based on a feature-first architecture.
+## Project Layout
 
-## Project Structure
-All new features and code must follow this structure:
+Monorepo with three top-level directories:
 
-```text
-lib/
-├── app.dart              # Main application entry and routing
-├── core/                 # App-wide infrastructure (API, utils, theme)
-├── shared/               # Reusable widgets and services
-└── features/             # Feature-specific modules
-    └── [feature_name]/   # Vertical slice containing everything for the feature (e.g., 'safety')
-        ├── data/         # Repositories, data models, API clients
-        ├── domain/       # Business entities, use cases, business logic
-        └── presentation/ # UI and State Management
-            ├── pages/    # Full-screen screens/pages
-            └── widgets/  # Feature-specific reusable widgets
+- **`frontend/`** — Flutter app (the only active codebase)
+- **`backend/`** — empty placeholder
+- **`supabase/`** — empty placeholder
+
+**All `flutter` commands must run from `frontend/`.**
+
+## Architecture: Feature-First (vertical slices)
+
+```
+frontend/lib/
+├── main.dart
+├── app.dart                # GoRouter setup, MaterialApp.router, routes
+├── core/theme/             # AppColors, AppTheme, design tokens Dart classes
+├── shared/widgets/         # Cross-cutting widgets (e.g., CommuterScaffold)
+└── features/
+    └── [feature_name]/
+        ├── data/           # Repositories, API clients, data models
+        ├── domain/         # Entities, use cases
+        └── presentation/
+            ├── pages/      # Full-screen routes
+            └── widgets/    # Feature-local reusable widgets
 ```
 
-## Architecture Rules
-- **A feature is a vertical slice**, not just a screen. A feature module MUST contain all components required for that functionality (UI, business logic, and data handling).
-- Follow the Feature-First approach. Do not add files to top-level `lib/` unless it is an app-wide configuration or entry point.
-- Keep `presentation` widgets clean; move logic to `domain` or `data` layers.
-- When creating a new feature, always use the `features/[feature_name]/[layer]/` structure.
+Existing features: `auth`, `map`, `onboarding`, `profile`, `ride_discovery`, `safety`.
 
-## Technical Constraints
-- Framework: Flutter
-- Mapping: Google Maps Platform
+**Rules:**
+- Never add feature files outside `features/[name]/`. Only app-wide config (`app.dart`, `main.dart`, `core/`, `shared/`) lives at the `lib/` root.
+- Presentation layer must stay UI-only; move business logic to `domain/` or `data/`.
+- A feature is a full vertical slice — do not create a feature with only a `presentation/` folder.
 
-## Design and Development Guidelines
-When making any changes to the application, you MUST consult and adhere to the following project standards:
-- **`SOUL.md`**: Principles and core philosophy of the application.
-- **`DESIGN_SYSTEM.md`**: Established UI patterns and component usage.
-- **`DESIGN_TOKENS.json`**: Strict adherence to design tokens (colors, spacing, typography) for all styling.
+## Tech Stack (verified from `pubspec.yaml`)
+
+| Concern | Package |
+|---|---|
+| Routing | `go_router` — `StatefulShellRoute.indexedStack` in `app.dart` |
+| Map | `flutter_map` + OpenStreetMap tiles (NOT Google Maps) |
+| Location | `geolocator`, `flutter_map_location_marker` |
+| Font | `google_fonts` (Inter) |
+| Animation | `flutter_animate` |
+| Lat/Lng | `latlong2` |
+
+**IMPORTANT:** `SOUL.md` and `DESIGN_SYSTEM.md` reference "Google Maps Platform" — this is outdated. The actual map implementation uses `flutter_map` with OpenStreetMap tile URLs. When writing map code, use `flutter_map` / `latlong2`, not `google_maps_flutter`.
+
+## Design System
+
+Three files you must consult before any UI work:
+
+1. **`SOUL.md`** — product philosophy and feature requirements
+2. **`DESIGN_SYSTEM.md`** — Material 3 component specs, layout rules, do/don't
+3. **`DESIGN_TOKENS.json`** — canonical color, spacing, typography, radius, and elevation values
+
+**Known inconsistency:** There are two Dart `AppColors` classes — one in `core/theme/app_colors.dart` and one in `core/theme/design_tokens.dart`. When adding colors, prefer the canonical values in `DESIGN_TOKENS.json` and note this duplication if it affects your work.
+
+## Theme Setup (`core/theme/app_theme.dart`)
+
+- `AppTheme.lightTheme` and `AppTheme.darkTheme` are the two theme objects
+- Safety colors (`safe`/`warning`/`danger`) live in a custom `ThemeExtension<SafetyColors>` — never repurpose `error`/`primary` for safety states
+- Dark mode is required; `ThemeMode.light` is currently hardcoded in `app.dart` (set `ThemeMode.system` when dark mode is ready)
+
+## Commands
+
+```bash
+# From frontend/
+flutter pub get          # install deps
+flutter analyze          # static analysis (uses flutter_lints)
+flutter test             # run tests (currently none exist)
+flutter run              # launch on connected device/emulator
+```
+
+No codegen, no `build_runner`, no `.g.dart` files in use.
+
+## Gotchas
+
+- **No tests exist yet** — `frontend/test/` is empty
+- **No assets directory** — no images, icons, or fonts bundled
+- **No `.env` files** — no environment config loaded at runtime
+- **No backend/supabase code** — those directories contain only `.gitkeep`
+- **Dart SDK:** `^3.12.2` (check compatibility when adding packages)
+- **Bottom nav height is 70px** in `CommuterScaffold`, though `DESIGN_TOKENS.json` says 80px — align these when touching navigation
