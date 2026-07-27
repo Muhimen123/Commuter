@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
 import '../widgets/map_search_field.dart';
 
@@ -20,6 +21,7 @@ class _MapPageState extends State<MapPage> {
   late MapController controller;
   final TextEditingController _searchController = TextEditingController();
   final PhotonRepository _photonRepository = PhotonRepository();
+  final OsrmRepository _osrmRepository = OsrmRepository();
   
   Timer? _debounceTimer;
   List<LocationSuggestion> _suggestions = [];
@@ -72,7 +74,7 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  void _selectSuggestion(LocationSuggestion suggestion) {
+  Future<void> _selectSuggestion(LocationSuggestion suggestion) async {
     _debounceTimer?.cancel();
     _searchController.text = suggestion.name;
     setState(() {
@@ -85,18 +87,21 @@ class _MapPageState extends State<MapPage> {
 
     setState(() {
       _hasRoute = true;
-      _routePoints = [
-        center,
-        LatLng((center.latitude + dest.latitude) / 2, (center.longitude + dest.longitude) / 2),
-        dest,
-      ];
+      _routePoints = [center, dest];
     });
 
     controller.move(dest, 15.0);
     FocusScope.of(context).unfocus();
+
+    final points = await _osrmRepository.fetchRoute(center, dest);
+    if (mounted && _hasRoute) {
+      setState(() {
+        _routePoints = points;
+      });
+    }
   }
 
-  void _searchAndDraftRoute(String query) {
+  Future<void> _searchAndDraftRoute(String query) async {
     if (query.trim().isEmpty) return;
     _debounceTimer?.cancel();
     setState(() {
@@ -109,16 +114,18 @@ class _MapPageState extends State<MapPage> {
 
     setState(() {
       _hasRoute = true;
-      _routePoints = [
-        center,
-        LatLng(center.latitude + 0.004, center.longitude + 0.002),
-        LatLng(center.latitude + 0.006, center.longitude + 0.005),
-        dest,
-      ];
+      _routePoints = [center, dest];
     });
 
     controller.move(LatLng((center.latitude + dest.latitude) / 2, (center.longitude + dest.longitude) / 2), 14.5);
     FocusScope.of(context).unfocus();
+
+    final points = await _osrmRepository.fetchRoute(center, dest);
+    if (mounted && _hasRoute) {
+      setState(() {
+        _routePoints = points;
+      });
+    }
   }
 
   void _clearRoute() {
