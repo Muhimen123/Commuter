@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/profile_menu_item.dart';
+import '../widgets/trusted_contacts_dialog.dart';
+import '../widgets/edit_profile_dialog.dart';
+import '../widgets/ride_history_dialog.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -51,7 +55,7 @@ class ProfilePage extends StatelessWidget {
                   const SizedBox(height: 20),
                   // Edit Profile Button
                   OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () => _showEditProfile(context),
                     child: const Text('Edit Profile'),
                   ),
                 ],
@@ -59,13 +63,20 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Menu Items
-            _buildMenuItem(context, Icons.history, 'Ride History', false),
-            _buildMenuItem(context, Icons.settings, 'App Settings', false),
-            _buildMenuItem(
-              context,
-              Icons.logout,
-              'Log Out',
-              true,
+            ProfileMenuItem(
+              icon: Icons.history,
+              title: 'Ride History',
+              onTap: () => _showRideHistory(context),
+            ),
+            ProfileMenuItem(
+              icon: Icons.verified_user_outlined,
+              title: 'Trusted Contacts',
+              onTap: () => _showTrustedContacts(context),
+            ),
+            ProfileMenuItem(
+              icon: Icons.logout,
+              title: 'Log Out',
+              isDestructive: true,
               onTap: () => context.go('/login'),
             ),
           ],
@@ -74,23 +85,24 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, bool isDestructive, {VoidCallback? onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Theme.of(context).colorScheme.surface,
-        leading: Icon(icon, color: isDestructive ? Theme.of(context).colorScheme.error : null),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isDestructive ? Theme.of(context).colorScheme.error : null,
-          ),
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap ?? () {},
-      ),
+  void _showRideHistory(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const RideHistoryDialog(),
+    );
+  }
+
+  void _showTrustedContacts(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const TrustedContactsDialog(),
+    );
+  }
+
+  void _showEditProfile(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const EditProfileDialog(),
     );
   }
 }
