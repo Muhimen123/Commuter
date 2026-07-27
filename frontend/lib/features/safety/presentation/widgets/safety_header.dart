@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SafetyHeader extends StatelessWidget {
   final double topPadding;
@@ -40,10 +41,14 @@ class SafetyHeader extends StatelessWidget {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              child: const Icon(Icons.person_outline, size: 20),
+            child: InkWell(
+              onTap: () => context.go('/profile'),
+              borderRadius: BorderRadius.circular(18),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                child: const Icon(Icons.person_outline, size: 20),
+              ),
             ),
           ),
         ],

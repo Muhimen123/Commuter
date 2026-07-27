@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/design_tokens.dart';
-import '../widgets/search_field.dart';
-import '../widgets/filter_chips.dart';
-import '../widgets/ride_card.dart';
-import '../../domain/entities/ride.dart';
+import 'package:frontend/core/theme/design_tokens.dart';
+import 'package:frontend/features/ride_discovery/presentation/widgets/search_field.dart';
+import 'package:frontend/features/ride_discovery/presentation/widgets/filter_chips.dart';
+import 'package:frontend/features/ride_discovery/presentation/widgets/ride_card.dart';
+import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 
 class RideDiscoveryPage extends StatelessWidget {
   const RideDiscoveryPage({super.key});

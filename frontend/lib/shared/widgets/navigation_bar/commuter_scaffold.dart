@@ -9,6 +9,7 @@ class CommuterScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: navigationShell,
       bottomNavigationBar: Container(
         color: Theme.of(context).colorScheme.surface,

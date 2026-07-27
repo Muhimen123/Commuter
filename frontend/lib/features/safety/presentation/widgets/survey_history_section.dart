@@ -28,7 +28,7 @@ class SurveyHistorySection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () => _showAllSurveys(context),
                 child: const Text('View All'),
               ),
             ],
@@ -48,6 +48,36 @@ class SurveyHistorySection extends StatelessWidget {
             'Downtown Loop • Oct 22',
             'Neutral',
             false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAllSurveys(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('All Safety Surveys'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: 5, // Example count
+            separatorBuilder: (context, index) => const Divider(height: 32),
+            itemBuilder: (context, index) => _buildSurveyItem(
+              context,
+              index % 2 == 0 ? 'Evening Train Commute' : 'Bus Route 42',
+              'Example Route • Oct ${24 - index}',
+              index % 2 == 0 ? 'Felt Safe' : 'Neutral',
+              index % 2 == 0,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),

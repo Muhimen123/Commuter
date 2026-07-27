@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../pages/report/incident_report_page.dart';
+import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 class SafetyReportButton extends StatelessWidget {
   const SafetyReportButton({super.key});
