@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/password_text_field.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
@@ -60,9 +61,14 @@ class SignupPage extends StatelessWidget {
                           ),
                           SizedBox(height: AppSpacing.lg),
                           AuthTextField(
+                            label: 'Phone Number',
+                            hintText: '+880 1401234567',
+                            keyboardType: TextInputType.phone,
+                          ),
+                          SizedBox(height: AppSpacing.lg),
+                          PasswordTextField(
                             label: 'Password',
                             hintText: '••••••••',
-                            obscureText: true,
                           ),
                         ],
                       ),

@@ -21,13 +21,22 @@ class CommuterScaffold extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
             NavigationDestination(
-              icon: Icon(Icons.directions_bus_outlined),
+              icon: Icon(Icons.home_outlined),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.directions_bus),
               label: 'Ride',
             ),
-            NavigationDestination(icon: Icon(Icons.shield_outlined), label: 'Safety'),
-            NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
+            NavigationDestination(
+              icon: Icon(Icons.shield_outlined),
+              label: 'Safety',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              label: 'Profile',
+            ),
           ],
         ),
       ),

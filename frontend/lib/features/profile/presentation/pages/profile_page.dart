@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -60,14 +61,20 @@ class ProfilePage extends StatelessWidget {
             // Menu Items
             _buildMenuItem(context, Icons.history, 'Ride History', false),
             _buildMenuItem(context, Icons.settings, 'App Settings', false),
-            _buildMenuItem(context, Icons.logout, 'Log Out', true),
+            _buildMenuItem(
+              context,
+              Icons.logout,
+              'Log Out',
+              true,
+              onTap: () => context.go('/login'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, bool isDestructive) {
+  Widget _buildMenuItem(BuildContext context, IconData icon, String title, bool isDestructive, {VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: ListTile(
@@ -82,7 +89,7 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: onTap ?? () {},
       ),
     );
   }
