@@ -1,20 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
 
 class _RatingCategory {
-  final String emoji;
+  final IconData icon;
   final String label;
-  const _RatingCategory(this.emoji, this.label);
+  const _RatingCategory(this.icon, this.label);
 }
 
 const List<_RatingCategory> _kRatingCategories = [
-  _RatingCategory('💡', 'Lighting'),
-  _RatingCategory('👀', 'Public Visibility'),
-  _RatingCategory('👥', 'Crowd Density'),
-  _RatingCategory('👮', 'Police/Security Presence'),
-  _RatingCategory('⚠️', 'Harassment Frequency'),
-  _RatingCategory('👜', 'Theft/Snatching Frequency'),
-  _RatingCategory('😊', 'Overall Feeling of Safety'),
+  _RatingCategory(Icons.lightbulb_outline_rounded, 'Lighting'),
+  _RatingCategory(Icons.visibility_outlined, 'Public Visibility'),
+  _RatingCategory(Icons.groups_outlined, 'Crowd Density'),
+  _RatingCategory(Icons.local_police_outlined, 'Police/Security Presence'),
+  _RatingCategory(Icons.report_outlined, 'Harassment Frequency'),
+  _RatingCategory(Icons.shopping_bag_outlined, 'Theft/Snatching Frequency'),
+  _RatingCategory(Icons.sentiment_satisfied_alt_outlined, 'Overall Feeling of Safety'),
 ];
 
 class _StarRatingRow extends StatefulWidget {
@@ -81,8 +85,15 @@ class _StarRatingRowState extends State<_StarRatingRow>
       children: [
         Row(
           children: [
-            Text(widget.category.emoji, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(widget.category.icon, size: 16, color: AppColors.primary),
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 widget.category.label,
@@ -157,12 +168,86 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final Map<String, int> _ratings = {};
+  bool _isLocating = true;
+  String? _locationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentLocation();
+  }
 
   @override
   void dispose() {
     _locationController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    setState(() {
+      _isLocating = true;
+      _locationError = null;
+    });
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw Exception('Location permission denied');
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      final areaName = await _reverseGeocode(position.latitude, position.longitude);
+      if (!mounted) return;
+      setState(() {
+        _locationController.text = areaName ??
+            '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
+        _isLocating = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLocating = false;
+        _locationError = 'Unable to detect location';
+      });
+    }
+  }
+
+  Future<String?> _reverseGeocode(double lat, double lng) async {
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?format=json&lat=$lat&lon=$lng&zoom=16&addressdetails=1',
+      );
+      final response = await http
+          .get(uri, headers: {'Accept-Language': 'en'})
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode != 200) return null;
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final address = data['address'] as Map<String, dynamic>?;
+      if (address == null) return data['display_name'] as String?;
+
+      final area = address['suburb'] ??
+          address['neighbourhood'] ??
+          address['residential'] ??
+          address['quarter'] ??
+          address['city_district'] ??
+          address['town'] ??
+          address['village'];
+      final city = address['city'] ?? address['county'] ?? address['state'];
+
+      if (area != null && city != null && area != city) {
+        return '$area, $city';
+      }
+      return (area ?? city) as String? ?? data['display_name'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   Widget _sectionCard({required Widget child}) {
@@ -239,13 +324,32 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
                     Expanded(
                       child: TextField(
                         controller: _locationController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
                           labelText: 'Location',
-                          hintText: 'Enter or confirm location...',
+                          hintText: _isLocating
+                              ? 'Detecting your location...'
+                              : (_locationError ?? 'Enter location...'),
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: _isLocating
+                          ? const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : IconButton(
+                              padding: EdgeInsets.zero,
+                              tooltip: 'Use current location',
+                              icon: const Icon(Icons.my_location, size: 20),
+                              color: AppColors.primary,
+                              onPressed: _fetchCurrentLocation,
+                            ),
                     ),
                   ],
                 ),
