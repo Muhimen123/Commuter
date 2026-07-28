@@ -16,7 +16,7 @@ class SafetyReportButton extends StatelessWidget {
         );
       },
       icon: const Icon(Icons.report_problem_outlined, color: Colors.white),
-      label: const Text('Report Incident'),
+      label: const Text('Area Survey'),
       style: ElevatedButton.styleFrom(
         backgroundColor: safetyColors?.danger ?? const Color(0xFFBA1A1A),
         foregroundColor: Colors.white,
