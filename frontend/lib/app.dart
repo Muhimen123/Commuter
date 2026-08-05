@@ -6,6 +6,9 @@ import 'package:frontend/features/map/presentation/pages/map_page.dart';
 import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
+import 'package:frontend/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:frontend/features/auth/presentation/pages/verify_code_page.dart';
+import 'package:frontend/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:frontend/features/ride_discovery/presentation/pages/ride_discovery_page.dart';
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
@@ -72,6 +75,18 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/signup',
       builder: (context, state) => const SignupPage(),
+    ),
+    GoRoute(
+      path: '/forgot_password',
+      builder: (context, state) => const ForgotPasswordPage(),
+    ),
+    GoRoute(
+      path: '/verify_code',
+      builder: (context, state) => const VerifyCodePage(),
+    ),
+    GoRoute(
+      path: '/reset_password',
+      builder: (context, state) => const ResetPasswordPage(),
     ),
   ],
 );
