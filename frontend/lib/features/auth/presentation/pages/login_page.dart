@@ -63,6 +63,22 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        context.push('/forgot_password');
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                   const Spacer(),
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
