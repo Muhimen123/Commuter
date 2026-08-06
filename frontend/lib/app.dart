@@ -29,8 +29,18 @@ final GoRouter _router = GoRouter(
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) =>
-                  const MapPage(title: 'Home'),
+              builder: (context, state) {
+                final lat = double.tryParse(state.uri.queryParameters['lat'] ?? '');
+                final lon = double.tryParse(state.uri.queryParameters['lon'] ?? '');
+                final name = state.uri.queryParameters['name'];
+
+                return MapPage(
+                  title: 'Home',
+                  initialLat: lat,
+                  initialLon: lon,
+                  sharedPersonName: name,
+                );
+              },
             ),
           ],
         ),
