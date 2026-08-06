@@ -140,6 +140,15 @@ class _MapPageState extends State<MapPage> {
     _centerMapOnUser();
   }
 
+  void _startJourney() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Starting journey...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
@@ -155,6 +164,16 @@ class _MapPageState extends State<MapPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      floatingActionButton: _hasRoute
+          ? FloatingActionButton.extended(
+              onPressed: _startJourney,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              icon: const Icon(Icons.directions_bus),
+              label: const Text('Start Journey'),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
         children: [
           FlutterMap(
