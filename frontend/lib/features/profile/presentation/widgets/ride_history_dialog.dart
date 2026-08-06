@@ -6,29 +6,29 @@ class RideHistoryDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Dummy data for ride history
-    final List<Map<String, String>> _rides = [
+    final List<Map<String, String>> rides = [
       {
         'route': 'Bus Route 42',
         'date': 'Oct 22, 2024',
-        'fare': '\$2.50',
+        'fare': '৳2.50',
         'status': 'Completed'
       },
       {
         'route': 'Evening Train Commute',
         'date': 'Oct 24, 2024',
-        'fare': '\$4.75',
+        'fare': '৳4.75',
         'status': 'Completed'
       },
       {
         'route': 'Morning Express 101',
         'date': 'Oct 25, 2024',
-        'fare': '\$3.00',
+        'fare': '৳3.00',
         'status': 'Completed'
       },
       {
         'route': 'Downtown Shuttle',
         'date': 'Oct 26, 2024',
-        'fare': '\$1.50',
+        'fare': '৳1.50',
         'status': 'Completed'
       },
     ];
@@ -39,10 +39,10 @@ class RideHistoryDialog extends StatelessWidget {
         width: double.maxFinite,
         child: ListView.separated(
           shrinkWrap: true,
-          itemCount: _rides.length,
+          itemCount: rides.length,
           separatorBuilder: (context, index) => const Divider(),
           itemBuilder: (context, index) {
-            final ride = _rides[index];
+            final ride = rides[index];
             return ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
