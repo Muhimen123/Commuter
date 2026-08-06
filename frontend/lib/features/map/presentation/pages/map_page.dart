@@ -154,6 +154,7 @@ class _MapPageState extends State<MapPage> {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           FlutterMap(
