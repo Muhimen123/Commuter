@@ -6,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
 import '../widgets/map_search_field.dart';
 import '../widgets/start_journey_fab.dart';
@@ -172,12 +172,10 @@ class _MapPageState extends State<MapPage> {
       builder: (context) => AddStopConfirmationDialog(
         center: center,
         onAddStop: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Stop added to journey!'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
-            ),
+          CommuterToast.show(
+            context,
+            message: 'Stop added to journey!',
+            icon: Icons.check_circle,
           );
         },
       ),

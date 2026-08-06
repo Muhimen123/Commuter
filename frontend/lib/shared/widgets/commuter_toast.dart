@@ -11,7 +11,7 @@ class CommuterToast {
     Color? foregroundColor,
     Color? iconBackgroundColor,
     Color? iconForegroundColor,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 2),
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -29,59 +29,54 @@ class CommuterToast {
         duration: duration,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
-          side: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.2),
-          ),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.2)),
         ),
         margin: const EdgeInsets.all(AppSpacing.md),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
         ),
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: iconFg,
-                size: 16,
-              ),
-            )
-                .animate(delay: const Duration(milliseconds: 100))
-                .scale(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeOutBack,
+        content:
+            Row(
+                  children: [
+                    Container(
+                          padding: const EdgeInsets.all(AppSpacing.xs),
+                          decoration: BoxDecoration(
+                            color: iconBg,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(icon, color: iconFg, size: 16),
+                        )
+                        .animate(delay: const Duration(milliseconds: 100))
+                        .scale(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutBack,
+                        )
+                        .rotate(
+                          begin: -0.1,
+                          end: 0,
+                          duration: const Duration(milliseconds: 300),
+                        ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: fg,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 )
-                .rotate(
-                  begin: -0.1,
+                .animate()
+                .fade(duration: const Duration(milliseconds: 250))
+                .slideY(
+                  begin: 0.2,
                   end: 0,
                   duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
                 ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                message,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: fg,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        )
-            .animate()
-            .fade(duration: const Duration(milliseconds: 250))
-            .slideY(
-              begin: 0.2,
-              end: 0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            ),
       ),
     );
   }
