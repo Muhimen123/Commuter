@@ -12,9 +12,7 @@ import '../widgets/safety_metrics_section.dart';
 import '../widgets/financial_spending_section.dart';
 import '../widgets/commute_analytics_section.dart';
 import '../widgets/logout_card.dart';
-import '../widgets/trusted_contacts_dialog.dart';
 import '../widgets/edit_profile_dialog.dart';
-import '../widgets/ride_history_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -102,17 +100,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showRideHistory(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const RideHistoryDialog(),
-    );
+    context.push('/ride_history');
   }
 
   void _showTrustedContacts(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const TrustedContactsDialog(),
-    );
+    context.push('/trusted_contacts');
   }
 
   void _showEditProfile(BuildContext context) {
@@ -123,12 +115,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showSettings(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Settings feature coming soon.'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    context.push('/settings');
   }
 }
