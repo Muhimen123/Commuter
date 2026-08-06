@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
+import '../widgets/active_ride_panel.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
 import '../widgets/map_search_field.dart';
 import '../widgets/start_journey_fab.dart';
@@ -162,7 +163,21 @@ class _MapPageState extends State<MapPage> {
         _isStartingJourney = false;
         _journeyStarted = true;
       });
+      CommuterToast.show(
+        context,
+        message: 'Journey started! Live tracking active.',
+        icon: Icons.navigation_rounded,
+      );
     }
+  }
+
+  void _endJourney() {
+    CommuterToast.show(
+      context,
+      message: 'Journey ended. Thanks for contributing!',
+      icon: Icons.check_circle_rounded,
+    );
+    _clearRoute();
   }
 
   void _showAddStopDialog() {
@@ -197,12 +212,14 @@ class _MapPageState extends State<MapPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      floatingActionButton: StartJourneyFab(
-        hasRoute: _hasRoute,
-        isStartingJourney: _isStartingJourney,
-        journeyStarted: _journeyStarted,
-        onPressed: _startJourney,
-      ),
+      floatingActionButton: _journeyStarted
+          ? null
+          : StartJourneyFab(
+              hasRoute: _hasRoute,
+              isStartingJourney: _isStartingJourney,
+              journeyStarted: _journeyStarted,
+              onPressed: _startJourney,
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
         children: [
@@ -260,6 +277,16 @@ class _MapPageState extends State<MapPage> {
               isLoading: _isLoadingSuggestions,
             ),
           ),
+          if (_journeyStarted)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ActiveRidePanel(
+                onAddStop: _showAddStopDialog,
+                onEndJourney: _endJourney,
+              ),
+            ),
         ],
       ),
     );
