@@ -54,7 +54,7 @@ class VerifyCodePage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const Spacer(),
               FilledButton(
                 onPressed: () {
                   context.push('/reset_password');
@@ -67,7 +67,7 @@ class VerifyCodePage extends StatelessWidget {
                 ),
                 child: const Text('Verify Code'),
               ),
-              const Spacer(),
+              const SizedBox(height: AppSpacing.lg),
             ],
           ),
         ),

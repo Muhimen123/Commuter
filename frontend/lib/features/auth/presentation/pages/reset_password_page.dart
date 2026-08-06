@@ -63,7 +63,7 @@ class ResetPasswordPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const Spacer(),
               FilledButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +138,7 @@ class ResetPasswordPage extends StatelessWidget {
                 ),
                 child: const Text('Reset Password'),
               ),
-              const Spacer(),
+              const SizedBox(height: AppSpacing.lg),
             ],
           ),
         ),
