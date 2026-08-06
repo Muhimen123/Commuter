@@ -68,6 +68,22 @@ class ActiveRidePanel extends StatelessWidget {
           Row(
             children: [
               Expanded(
+                child: FilledButton.icon(
+                  onPressed: onEndJourney,
+                  icon: const Icon(Icons.stop_rounded),
+                  label: const Text('End Journey'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colorScheme.error,
+                    foregroundColor: colorScheme.onError,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: FilledButton.tonal(
                   onPressed: onAddStop,
                   style: FilledButton.styleFrom(
@@ -83,22 +99,6 @@ class ActiveRidePanel extends StatelessWidget {
                       SizedBox(width: 8),
                       Text('Add Stop'),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onEndJourney,
-                  icon: const Icon(Icons.stop_rounded),
-                  label: const Text('End Journey'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colorScheme.error,
-                    foregroundColor: colorScheme.onError,
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
                   ),
                 ),
               ),
