@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
 import '../widgets/map_search_field.dart';
+import '../widgets/start_journey_fab.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.title});
@@ -27,6 +28,8 @@ class _MapPageState extends State<MapPage> {
   List<LocationSuggestion> _suggestions = [];
   bool _isLoadingSuggestions = false;
   bool _hasRoute = false;
+  bool _isStartingJourney = false;
+  bool _journeyStarted = false;
   List<LatLng> _routePoints = [];
 
   @override
@@ -136,17 +139,24 @@ class _MapPageState extends State<MapPage> {
       _suggestions = [];
       _isLoadingSuggestions = false;
       _searchController.clear();
+      _isStartingJourney = false;
+      _journeyStarted = false;
     });
     _centerMapOnUser();
   }
 
-  void _startJourney() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Starting journey...'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _startJourney() async {
+    if (_isStartingJourney || _journeyStarted) return;
+    setState(() {
+      _isStartingJourney = true;
+    });
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      setState(() {
+        _isStartingJourney = false;
+        _journeyStarted = true;
+      });
+    }
   }
 
   @override
@@ -164,15 +174,12 @@ class _MapPageState extends State<MapPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      floatingActionButton: _hasRoute
-          ? FloatingActionButton.extended(
-              onPressed: _startJourney,
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              icon: const Icon(Icons.directions_bus),
-              label: const Text('Start Journey'),
-            )
-          : null,
+      floatingActionButton: StartJourneyFab(
+        hasRoute: _hasRoute,
+        isStartingJourney: _isStartingJourney,
+        journeyStarted: _journeyStarted,
+        onPressed: _startJourney,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
         children: [
