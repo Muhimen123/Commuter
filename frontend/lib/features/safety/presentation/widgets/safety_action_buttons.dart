@@ -16,7 +16,9 @@ class SafetyActionButtons extends StatelessWidget {
             label: 'Area Survey',
             color: const Color(0xFFC0A94E),
             onTap: () {
-              // TODO: Navigate to Area Survey page
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const IncidentReportPage()),
+              );
             },
           ),
         ),
@@ -25,12 +27,9 @@ class SafetyActionButtons extends StatelessWidget {
           child: _buildButton(
             context,
             icon: Icons.report_problem_outlined,
-            label: 'Report Incident',
+            label: 'SOS',
             color: AppColors.danger,
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const IncidentReportPage()),
-              );
             },
           ),
         ),
