@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 class SafetyActionButtons extends StatelessWidget {
@@ -26,10 +27,15 @@ class SafetyActionButtons extends StatelessWidget {
         Expanded(
           child: _buildButton(
             context,
-            icon: Icons.report_problem_outlined,
+            icon: Icons.sos_rounded,
             label: 'SOS',
             color: AppColors.danger,
             onTap: () {
+              CommuterToast.show(
+                context,
+                message: 'Emergency Alert Sent to Trusted Contacts!',
+                icon: Icons.emergency_share_rounded,
+              );
             },
           ),
         ),

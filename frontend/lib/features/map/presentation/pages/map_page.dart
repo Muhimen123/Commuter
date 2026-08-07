@@ -4,9 +4,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:frontend/features/safety/presentation/widgets/safety_heatmap_toggle.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
+import '../widgets/safety_map_button.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import '../widgets/active_ride_panel.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
@@ -46,12 +46,10 @@ class _MapPageState extends State<MapPage> {
   List<LatLng> _routePoints = [];
 
   bool _heatmapEnabled = false;
-  List<CircleMarker> _radarCircles = [];
 
   @override
   void didUpdateWidget(MapPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If we receive new tracking coordinates via navigation
     if (widget.initialLat != oldWidget.initialLat || widget.initialLon != oldWidget.initialLon) {
       if (widget.initialLat != null && widget.initialLon != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -100,79 +98,6 @@ class _MapPageState extends State<MapPage> {
     } catch (e) {
       debugPrint('Error getting current position: $e');
     }
-  }
-
-  // Generate an AccuWeather-style "radar" effect using nested circles
-  void _generateRadarEffect(LatLng center) {
-    setState(() {
-      _radarCircles = [];
-      
-      // Create several "storm" blobs around the center
-      final blobs = [
-        LatLng(center.latitude + 0.005, center.longitude - 0.004),
-        LatLng(center.latitude - 0.003, center.longitude + 0.006),
-        LatLng(center.latitude + 0.002, center.longitude + 0.002),
-        LatLng(center.latitude - 0.006, center.longitude - 0.003),
-      ];
-
-      for (var blob in blobs) {
-        // AccuWeather style: Multi-layered transparent circles for soft gradient
-        
-        // Layer 0: Super-soft outer green glow
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 1800,
-          useRadiusInMeter: true,
-          color: Colors.green.withValues(alpha: 0.05),
-          borderStrokeWidth: 0,
-        ));
-
-        // Layer 1: Soft green
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 1200,
-          useRadiusInMeter: true,
-          color: Colors.green.withValues(alpha: 0.15),
-          borderStrokeWidth: 0,
-        ));
-        
-        // Layer 2: Transition green-yellow
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 800,
-          useRadiusInMeter: true,
-          color: Colors.lightGreen.withValues(alpha: 0.25),
-          borderStrokeWidth: 0,
-        ));
-
-        // Layer 3: Warning Orange
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 500,
-          useRadiusInMeter: true,
-          color: Colors.orange.withValues(alpha: 0.35),
-          borderStrokeWidth: 0,
-        ));
-
-        // Layer 4: Danger Red core
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 250,
-          useRadiusInMeter: true,
-          color: Colors.red.withValues(alpha: 0.45),
-          borderStrokeWidth: 0,
-        ));
-
-        // Layer 5: Intense Red/White peak
-        _radarCircles.add(CircleMarker(
-          point: blob,
-          radius: 120,
-          useRadiusInMeter: true,
-          color: Colors.redAccent.withValues(alpha: 0.6),
-          borderStrokeWidth: 0,
-        ));
-      }
-    });
   }
 
   void _onSearchChanged(String query) {
@@ -356,22 +281,17 @@ class _MapPageState extends State<MapPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.commuter.frontend',
               ),
-              if (_heatmapEnabled)
-                CircleLayer(
-                  circles: _radarCircles,
-                ),
               CurrentLocationLayer(),
-              
-              // If viewing someone else's location, show their marker
+
               if (widget.sharedPersonName != null && widget.initialLat != null)
                 MarkerLayer(
                   markers: [
                     Marker(
                       point: LatLng(widget.initialLat!, widget.initialLon!),
-                      width: 120, // Increased width for longer names
-                      height: 80, // Increased height to prevent vertical overflow
+                      width: 120,
+                      height: 80,
                       child: Column(
-                        mainAxisSize: MainAxisSize.min, // Use minimum space
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -448,17 +368,13 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
           Positioned(
-            top: topPadding + 84,
+            bottom: _journeyStarted ? 150 : 32,
             left: 16,
-            right: 16,
-            child: SafetyHeatmapToggle(
+            child: SafetyMapButton(
               isEnabled: _heatmapEnabled,
-              onChanged: (val) {
+              onTap: () {
                 setState(() {
-                  _heatmapEnabled = val;
-                  if (_heatmapEnabled) {
-                    _generateRadarEffect(controller.camera.center);
-                  }
+                  _heatmapEnabled = !_heatmapEnabled;
                 });
               },
             ),
