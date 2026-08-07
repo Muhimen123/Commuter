@@ -112,7 +112,7 @@ class RideCard extends StatelessWidget {
                     Icon(Icons.payments, size: 18, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      '\$${ride.fare.toStringAsFixed(2)}',
+                      '৳${ride.fare.toStringAsFixed(2)}',
                       style: textTheme.labelLarge?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                   ],
