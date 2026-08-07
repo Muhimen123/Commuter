@@ -5,7 +5,6 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:frontend/features/safety/presentation/widgets/safety_heatmap_toggle.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
@@ -58,11 +57,10 @@ class _MapPageState extends State<MapPage> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           controller.move(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
           if (widget.sharedPersonName != null && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Viewing ${widget.sharedPersonName}\'s live location'),
-                behavior: SnackBarBehavior.floating,
-              ),
+            CommuterToast.show(
+              context,
+              message: 'Viewing ${widget.sharedPersonName}\'s live location',
+              icon: Icons.person_pin_circle_rounded,
             );
           }
         });
@@ -79,11 +77,10 @@ class _MapPageState extends State<MapPage> {
       if (widget.initialLat != null && widget.initialLon != null) {
         controller.move(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
         if (widget.sharedPersonName != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Viewing ${widget.sharedPersonName}\'s live location'),
-              behavior: SnackBarBehavior.floating,
-            ),
+          CommuterToast.show(
+            context,
+            message: 'Viewing ${widget.sharedPersonName}\'s live location',
+            icon: Icons.person_pin_circle_rounded,
           );
         }
       } else {
