@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/safety/presentation/widgets/safety_header.dart';
-import 'package:frontend/features/safety/presentation/widgets/safety_heatmap_toggle.dart';
-import 'package:frontend/features/safety/presentation/widgets/safety_report_button.dart';
-import 'package:frontend/features/safety/presentation/widgets/safety_dashboard_sheet.dart';
+import '../widgets/safety_header.dart';
+import '../widgets/location_sharing_with_section.dart';
+import '../widgets/location_shared_with_section.dart';
+import '../widgets/survey_history_section.dart';
+import '../widgets/safety_action_buttons.dart';
 
 class SafetyPage extends StatefulWidget {
   const SafetyPage({super.key});
@@ -16,91 +14,49 @@ class SafetyPage extends StatefulWidget {
 }
 
 class _SafetyPageState extends State<SafetyPage> {
-  bool _heatmapEnabled = true;
-
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
-    
-    // Header height (64) + gap (12) + topPadding
-    final headerTotalHeight = topPadding + 64 + 12;
-    final maxSheetHeight = (screenHeight - headerTotalHeight) / screenHeight;
 
     return Scaffold(
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark.copyWith(
           statusBarColor: Colors.transparent,
         ),
-        child: Stack(
+        child: Column(
           children: [
-            // 1. Full-bleed Map (Interactive map without API key)
-            Positioned.fill(
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: const LatLng(40.7128, -74.0060),
-                  initialZoom: 14,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.commuter.app.safety_map',
-                  ),
-                  if (_heatmapEnabled)
-                    CircleLayer(
-                      circles: [
-                        CircleMarker(
-                          point: const LatLng(40.7150, -74.0080),
-                          radius: 1000,
-                          useRadiusInMeter: true,
-                          color: AppColors.danger.withValues(alpha: 0.2),
-                          borderColor: AppColors.danger.withValues(alpha: 0.5),
-                          borderStrokeWidth: 2,
-                        ),
-                        CircleMarker(
-                          point: const LatLng(40.7080, -74.0020),
-                          radius: 800,
-                          useRadiusInMeter: true,
-                          color: AppColors.warning.withValues(alpha: 0.2),
-                          borderColor: AppColors.warning.withValues(alpha: 0.5),
-                          borderStrokeWidth: 2,
-                        ),
-                      ],
+            SafetyHeader(topPadding: topPadding),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: const [
+                  Text(
+                    'Safety Dashboard',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Monitor your journey and manage emergency contacts.',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  SizedBox(height: 32),
+                  
+                  SafetyActionButtons(),
+                  SizedBox(height: 24),
+                  
+                  LocationSharingWithSection(),
+                  SizedBox(height: 24),
+                  
+                  LocationSharedWithSection(),
+                  SizedBox(height: 24),
+                  
+                  SurveyHistorySection(),
+                  SizedBox(height: 32),
                 ],
               ),
-            ),
-
-            // 2. Safety Heatmap Toggle Overlay
-            Positioned(
-              top: headerTotalHeight, // Below header + gap
-              left: 16,
-              right: 16,
-              child: SafetyHeatmapToggle(
-                isEnabled: _heatmapEnabled,
-                onChanged: (val) => setState(() => _heatmapEnabled = val),
-              ),
-            ),
-
-            // 3. Floating Action Button (Report)
-            Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.14 + 20, // Float just above the sheet peek
-              right: 16,
-              child: const SafetyReportButton(),
-            ),
-
-            // 4. Draggable Bottom Sheet
-            SafetyDashboardSheet(maxChildSize: maxSheetHeight),
-
-            // 5. Custom Floating Header - Placed LAST to stay on top
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SafetyHeader(topPadding: topPadding),
             ),
           ],
         ),

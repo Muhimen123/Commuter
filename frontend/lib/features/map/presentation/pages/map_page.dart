@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
+import '../widgets/safety_map_button.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import '../widgets/active_ride_panel.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
@@ -13,9 +14,18 @@ import '../widgets/map_search_field.dart';
 import '../widgets/start_journey_fab.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key, required this.title});
-
   final String title;
+  final double? initialLat;
+  final double? initialLon;
+  final String? sharedPersonName;
+
+  const MapPage({
+    super.key, 
+    required this.title,
+    this.initialLat,
+    this.initialLon,
+    this.sharedPersonName,
+  });
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -35,11 +45,46 @@ class _MapPageState extends State<MapPage> {
   bool _journeyStarted = false;
   List<LatLng> _routePoints = [];
 
+  bool _heatmapEnabled = false;
+
+  @override
+  void didUpdateWidget(MapPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialLat != oldWidget.initialLat || widget.initialLon != oldWidget.initialLon) {
+      if (widget.initialLat != null && widget.initialLon != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.move(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+          if (widget.sharedPersonName != null && mounted) {
+            CommuterToast.show(
+              context,
+              message: 'Viewing ${widget.sharedPersonName}\'s live location',
+              icon: Icons.person_pin_circle_rounded,
+            );
+          }
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     controller = MapController();
-    _centerMapOnUser();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialLat != null && widget.initialLon != null) {
+        controller.move(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+        if (widget.sharedPersonName != null) {
+          CommuterToast.show(
+            context,
+            message: 'Viewing ${widget.sharedPersonName}\'s live location',
+            icon: Icons.person_pin_circle_rounded,
+          );
+        }
+      } else {
+        _centerMapOnUser();
+      }
+    });
   }
 
   Future<void> _centerMapOnUser() async {
@@ -225,8 +270,10 @@ class _MapPageState extends State<MapPage> {
         children: [
           FlutterMap(
             mapController: controller,
-            options: const MapOptions(
-              initialCenter: LatLng(47.4358055, 8.4737324),
+            options: MapOptions(
+              initialCenter: widget.initialLat != null 
+                  ? LatLng(widget.initialLat!, widget.initialLon!) 
+                  : const LatLng(47.4358, 8.4737),
               initialZoom: 17.0,
             ),
             children: [
@@ -235,6 +282,49 @@ class _MapPageState extends State<MapPage> {
                 userAgentPackageName: 'com.commuter.frontend',
               ),
               CurrentLocationLayer(),
+
+              if (widget.sharedPersonName != null && widget.initialLat != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: LatLng(widget.initialLat!, widget.initialLon!),
+                      width: 120,
+                      height: 80,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              widget.sharedPersonName!,
+                              style: const TextStyle(
+                                color: Colors.white, 
+                                fontSize: 10, 
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(Icons.location_on, color: colorScheme.primary, size: 30),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
               if (_hasRoute && _routePoints.isNotEmpty) ...[
                 PolylineLayer(
                   polylines: [
@@ -275,6 +365,18 @@ class _MapPageState extends State<MapPage> {
               suggestions: _suggestions,
               onSuggestionSelected: _selectSuggestion,
               isLoading: _isLoadingSuggestions,
+            ),
+          ),
+          Positioned(
+            bottom: _journeyStarted ? 150 : 32,
+            left: 16,
+            child: SafetyMapButton(
+              isEnabled: _heatmapEnabled,
+              onTap: () {
+                setState(() {
+                  _heatmapEnabled = !_heatmapEnabled;
+                });
+              },
             ),
           ),
           if (_journeyStarted)
