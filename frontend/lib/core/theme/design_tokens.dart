@@ -53,8 +53,9 @@ class AppColors {
   static const Color errorContainer = Color(0xFFFFDAD9);
   static const Color onErrorContainer = Color(0xFF410002);
 
-  // Safety Colors
+  // Safety & Action Colors
   static const Color safetySafe = Color(0xFF6CA3A2);
+  static const Color success = Color(0xFF2E7D32);
   static const Color safetyWarning = Color(0xFFE49940);
   static const Color safetyDanger = Color(0xFFFF7675);
 }

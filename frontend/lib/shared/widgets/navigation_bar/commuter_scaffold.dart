@@ -19,7 +19,7 @@ class CommuterScaffold extends StatelessWidget {
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           indicatorShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(12),
           ),
           destinations: const [
             NavigationDestination(

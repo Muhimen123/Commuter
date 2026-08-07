@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/auth/presentation/widgets/password_text_field.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 
 class ResetPasswordPage extends StatelessWidget {
   const ResetPasswordPage({super.key});
@@ -66,67 +66,9 @@ class ResetPasswordPage extends StatelessWidget {
               const Spacer(),
               FilledButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.medium),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      margin: const EdgeInsets.all(AppSpacing.md),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.md,
-                      ),
-                      content: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.xs),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.check,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              size: 16,
-                            ),
-                          )
-                              .animate(delay: const Duration(milliseconds: 100))
-                              .scale(
-                                duration: const Duration(milliseconds: 400),
-                                curve: Curves.easeOutBack,
-                              )
-                              .rotate(
-                                begin: -0.1,
-                                end: 0,
-                                duration: const Duration(milliseconds: 300),
-                              ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Text(
-                              'Password reset successfully. Please log in.',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      )
-                          .animate()
-                          .fade(duration: const Duration(milliseconds: 250))
-                          .slideY(
-                            begin: 0.2,
-                            end: 0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          ),
-                    ),
+                  CommuterToast.show(
+                    context,
+                    message: 'Password reset successfully. Please log in.',
                   );
                   context.go('/login');
                 },
