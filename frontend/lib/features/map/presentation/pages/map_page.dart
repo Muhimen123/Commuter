@@ -304,19 +304,34 @@ class _MapPageState extends State<MapPage> {
                   markers: [
                     Marker(
                       point: LatLng(widget.initialLat!, widget.initialLon!),
-                      width: 60,
-                      height: 60,
+                      width: 120, // Increased width for longer names
+                      height: 80, // Increased height to prevent vertical overflow
                       child: Column(
+                        mainAxisSize: MainAxisSize.min, // Use minimum space
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: colorScheme.primary,
                               borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Text(
                               widget.sharedPersonName!,
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white, 
+                                fontSize: 10, 
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Icon(Icons.location_on, color: colorScheme.primary, size: 30),
