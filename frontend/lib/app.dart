@@ -13,6 +13,9 @@ import 'package:frontend/features/ride_discovery/presentation/pages/ride_discove
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
+import 'package:frontend/features/profile/presentation/pages/settings_page.dart';
+import 'package:frontend/features/profile/presentation/pages/ride_history_page.dart';
+import 'package:frontend/features/profile/presentation/pages/trusted_contacts_page.dart';
 import 'package:frontend/features/safety/presentation/pages/safety_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -97,6 +100,18 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/reset_password',
       builder: (context, state) => const ResetPasswordPage(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: '/ride_history',
+      builder: (context, state) => const RideHistoryPage(),
+    ),
+    GoRoute(
+      path: '/trusted_contacts',
+      builder: (context, state) => const TrustedContactsPage(),
     ),
   ],
 );

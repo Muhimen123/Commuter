@@ -1,103 +1,110 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/profile_menu_item.dart';
-import '../widgets/trusted_contacts_dialog.dart';
+import '../../../../core/theme/design_tokens.dart';
+import '../../domain/entities/profile_entity.dart';
+import '../../domain/repositories/profile_repository.dart';
+import '../../data/repositories/dummy_profile_repository.dart';
+import '../widgets/profile_header_card.dart';
+import '../widgets/quick_stats_row.dart';
+import '../widgets/profile_nav_card.dart';
+import '../widgets/transit_intelligence_section.dart';
+import '../widgets/safety_metrics_section.dart';
+import '../widgets/financial_spending_section.dart';
+import '../widgets/commute_analytics_section.dart';
+import '../widgets/logout_card.dart';
 import '../widgets/edit_profile_dialog.dart';
-import '../widgets/ride_history_dialog.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final ProfileRepository _repository = DummyProfileRepositoryImpl();
+  late Future<ProfileEntity> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _repository.getProfileData();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
+        child: FutureBuilder<ProfileEntity>(
+          future: _profileFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return const Center(child: Text('Unable to load profile'));
+            }
+
+            final profile = snapshot.data!;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Avatar
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                  ProfileHeaderCard(
+                    profile: profile,
+                    onEditProfile: () => _showEditProfile(context),
                   ),
-                  const SizedBox(height: 20),
-                  // Name
-                  Text(
-                    'Jane Doe',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(height: AppSpacing.lg),
+                  QuickStatsRow(stats: profile.quickStats),
+                  const SizedBox(height: AppSpacing.lg),
+                  ProfileNavCard(
+                    icon: Icons.history,
+                    title: 'Ride History',
+                    onTap: () => _showRideHistory(context),
                   ),
-                  // Email
-                  Text(
-                    'jane@example.com',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                  const SizedBox(height: AppSpacing.sm),
+                  ProfileNavCard(
+                    icon: Icons.people_outline,
+                    title: 'Manage Trusted Guardians',
+                    onTap: () => _showTrustedContacts(context),
                   ),
-                  const SizedBox(height: 20),
-                  // Edit Profile Button
-                  OutlinedButton(
-                    onPressed: () => _showEditProfile(context),
-                    child: const Text('Edit Profile'),
+                  const SizedBox(height: AppSpacing.sm),
+                  ProfileNavCard(
+                    icon: Icons.settings_outlined,
+                    title: 'Settings',
+                    onTap: () => _showSettings(context),
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TransitIntelligenceSection(intelligence: profile.transitIntelligence),
+                  const SizedBox(height: AppSpacing.lg),
+                  SafetyMetricsSection(metrics: profile.safetyMetrics),
+                  const SizedBox(height: AppSpacing.lg),
+                  FinancialSpendingSection(metrics: profile.financialMetrics),
+                  const SizedBox(height: AppSpacing.lg),
+                  CommuteAnalyticsSection(analytics: profile.commuteAnalytics),
+                  const SizedBox(height: AppSpacing.lg),
+                  LogoutCard(
+                    onLogout: () => context.go('/login'),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            // Menu Items
-            ProfileMenuItem(
-              icon: Icons.history,
-              title: 'Ride History',
-              onTap: () => _showRideHistory(context),
-            ),
-            ProfileMenuItem(
-              icon: Icons.verified_user_outlined,
-              title: 'Trusted Contacts',
-              onTap: () => _showTrustedContacts(context),
-            ),
-            ProfileMenuItem(
-              icon: Icons.logout,
-              title: 'Log Out',
-              isDestructive: true,
-              onTap: () => context.go('/login'),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
   void _showRideHistory(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const RideHistoryDialog(),
-    );
+    context.push('/ride_history');
   }
 
   void _showTrustedContacts(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const TrustedContactsDialog(),
-    );
+    context.push('/trusted_contacts');
   }
 
   void _showEditProfile(BuildContext context) {
@@ -105,5 +112,9 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (context) => const EditProfileDialog(),
     );
+  }
+
+  void _showSettings(BuildContext context) {
+    context.push('/settings');
   }
 }

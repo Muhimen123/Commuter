@@ -8,7 +8,11 @@ import 'package:frontend/features/safety/presentation/widgets/safety_heatmap_tog
 import 'package:frontend/core/theme/app_colors.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
+import '../widgets/active_ride_panel.dart';
+import '../widgets/add_stop_confirmation_dialog.dart';
 import '../widgets/map_search_field.dart';
+import '../widgets/start_journey_fab.dart';
 
 class MapPage extends StatefulWidget {
   final String title;
@@ -38,6 +42,8 @@ class _MapPageState extends State<MapPage> {
   List<LocationSuggestion> _suggestions = [];
   bool _isLoadingSuggestions = false;
   bool _hasRoute = false;
+  bool _isStartingJourney = false;
+  bool _journeyStarted = false;
   List<LatLng> _routePoints = [];
 
   bool _heatmapEnabled = false;
@@ -259,8 +265,59 @@ class _MapPageState extends State<MapPage> {
       _suggestions = [];
       _isLoadingSuggestions = false;
       _searchController.clear();
+      _isStartingJourney = false;
+      _journeyStarted = false;
     });
     _centerMapOnUser();
+  }
+
+  Future<void> _startJourney() async {
+    if (_isStartingJourney) return;
+    if (_journeyStarted) {
+      _showAddStopDialog();
+      return;
+    }
+    setState(() {
+      _isStartingJourney = true;
+    });
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      setState(() {
+        _isStartingJourney = false;
+        _journeyStarted = true;
+      });
+      CommuterToast.show(
+        context,
+        message: 'Journey started! Live tracking active.',
+        icon: Icons.navigation_rounded,
+      );
+    }
+  }
+
+  void _endJourney() {
+    CommuterToast.show(
+      context,
+      message: 'Journey ended. Thanks for contributing!',
+      icon: Icons.check_circle_rounded,
+    );
+    _clearRoute();
+  }
+
+  void _showAddStopDialog() {
+    final center = controller.camera.center;
+    showDialog(
+      context: context,
+      builder: (context) => AddStopConfirmationDialog(
+        center: center,
+        onAddStop: () {
+          CommuterToast.show(
+            context,
+            message: 'Stop added to journey!',
+            icon: Icons.check_circle,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -277,6 +334,16 @@ class _MapPageState extends State<MapPage> {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      floatingActionButton: _journeyStarted
+          ? null
+          : StartJourneyFab(
+              hasRoute: _hasRoute,
+              isStartingJourney: _isStartingJourney,
+              journeyStarted: _journeyStarted,
+              onPressed: _startJourney,
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
         children: [
           FlutterMap(
@@ -399,6 +466,16 @@ class _MapPageState extends State<MapPage> {
               },
             ),
           ),
+          if (_journeyStarted)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ActiveRidePanel(
+                onAddStop: _showAddStopDialog,
+                onEndJourney: _endJourney,
+              ),
+            ),
         ],
       ),
     );
