@@ -8,86 +8,49 @@ abstract class SafetyHeatmapRepository {
   Future<List<SafetyPoint>> getSafetyPoints({required LatLng center});
 }
 
-/// Distance band: points are laid out on concentric rings within
-/// [minRadius, maxRadius], `spacing` meters apart along each ring. Bands
-/// further from center use larger spacing (fewer points) but a
-/// proportionally larger `influenceRadiusMeters` per point, so coverage
-/// stays continuous without the point count exploding.
-class _Band {
-  final double minRadius;
-  final double maxRadius;
-  final double spacing;
-  const _Band({required this.minRadius, required this.maxRadius, required this.spacing});
-}
-
-const _bands = [
-  _Band(minRadius: 0, maxRadius: 800, spacing: 260), // fine detail right around the user
-  _Band(minRadius: 800, maxRadius: 2500, spacing: 650),
-  _Band(minRadius: 2500, maxRadius: 5500, spacing: 1300),
-  _Band(minRadius: 5500, maxRadius: 10000, spacing: 2400), // wide ambient coverage out to ~10km
-];
-
 class MockSafetyHeatmapRepository implements SafetyHeatmapRepository {
   @override
   Future<List<SafetyPoint>> getSafetyPoints({required LatLng center}) async {
     await Future.delayed(const Duration(milliseconds: 250));
 
-    final random = Random(7);
+    final random = Random(7); 
     final points = <SafetyPoint>[];
 
     final phases = List.generate(4, (_) => random.nextDouble() * pi * 2);
-    const freqs = [0.0011, 0.0019, 0.0031, 0.0047];
+    const freqs = [0.0011, 0.0019, 0.0031, 0.0047]; 
 
     double fieldNoise(double xMeters, double yMeters) {
       var value = 0.0;
       for (var i = 0; i < freqs.length; i++) {
         value += sin(xMeters * freqs[i] + phases[i]) * cos(yMeters * freqs[i] * 1.3 + phases[i]);
       }
-      return value / freqs.length;
+      return value / freqs.length; 
     }
 
-    // Meters -> degrees conversion, corrected for latitude so the ~10km
-    // radius stays roughly circular instead of squashed east-west.
-    final centerLatRad = center.latitude * pi / 180;
-    const metersPerDegLat = 111320.0;
-    final metersPerDegLng = 111320.0 * cos(centerLatRad);
+    const gridStepDeg = 0.0024;
+    const gridHalfExtent = 4;
+    for (var gx = -gridHalfExtent; gx <= gridHalfExtent; gx++) {
+      for (var gy = -gridHalfExtent; gy <= gridHalfExtent; gy++) {
+        final latOffset = gy * gridStepDeg;
+        final lngOffset = gx * gridStepDeg;
+        final xMeters = gx * 265.0;
+        final yMeters = gy * 265.0;
 
-    LatLng offsetMeters(double dxEast, double dyNorth) {
-      return LatLng(
-        center.latitude + dyNorth / metersPerDegLat,
-        center.longitude + dxEast / metersPerDegLng,
-      );
-    }
+        final noise = fieldNoise(xMeters, yMeters); 
+        final jitter = (random.nextDouble() - 0.5) * 0.08;
+        final score = (((noise + 1) / 2) + jitter).clamp(0.0, 1.0);
 
-    // --- Ambient field, ring by ring, band by band ----------------------
-    for (final band in _bands) {
-      for (var r = band.minRadius + band.spacing / 2; r < band.maxRadius; r += band.spacing) {
-        final ringPointCount = max(6, (2 * pi * r / band.spacing).round());
-        final angleOffset = random.nextDouble() * pi * 2;
-        for (var i = 0; i < ringPointCount; i++) {
-          final angle = (2 * pi * i / ringPointCount) + angleOffset;
-          final dx = r * cos(angle);
-          final dy = r * sin(angle);
-
-          final noise = fieldNoise(dx, dy);
-          final jitter = (random.nextDouble() - 0.5) * 0.08;
-          final score = (((noise + 1) / 2) + jitter).clamp(0.0, 1.0);
-          final pos = offsetMeters(dx, dy);
-
-          points.add(
-            SafetyPoint(
-              latitude: pos.latitude,
-              longitude: pos.longitude,
-              score: score,
-              reportCount: 2 + random.nextInt(25),
-              influenceRadiusMeters: band.spacing * 0.62,
-            ),
-          );
-        }
+        points.add(
+          SafetyPoint(
+            latitude: center.latitude + latOffset,
+            longitude: center.longitude + lngOffset,
+            score: score,
+            reportCount: 2 + random.nextInt(25),
+          ),
+        );
       }
     }
 
-    // --- Signature hotspots, close to the user, layered on top ----------
     final hotspots = <_MockCluster>[
       _MockCluster(latOffset: 0.0075, lngOffset: -0.0060, baseScore: 0.92, spread: 0.0035, count: 8),
       _MockCluster(latOffset: -0.0080, lngOffset: 0.0070, baseScore: 0.10, spread: 0.0030, count: 7),
