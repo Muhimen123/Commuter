@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
@@ -8,78 +9,126 @@ import 'package:frontend/core/theme/app_colors.dart';
 class _RatingCategory {
   final IconData icon;
   final String label;
-  const _RatingCategory(this.icon, this.label);
+  final String lowHint;
+  final String highHint;
+  const _RatingCategory(this.icon, this.label, this.lowHint, this.highHint);
 }
 
 const List<_RatingCategory> _kRatingCategories = [
-  _RatingCategory(Icons.lightbulb_outline_rounded, 'Lighting'),
-  _RatingCategory(Icons.visibility_outlined, 'Public Visibility'),
-  _RatingCategory(Icons.groups_outlined, 'Crowd Density'),
-  _RatingCategory(Icons.local_police_outlined, 'Police/Security Presence'),
-  _RatingCategory(Icons.report_outlined, 'Harassment Frequency'),
-  _RatingCategory(Icons.shopping_bag_outlined, 'Theft/Snatching Frequency'),
-  _RatingCategory(Icons.sentiment_satisfied_alt_outlined, 'Overall Feeling of Safety'),
+  _RatingCategory(
+    Icons.lightbulb_outline_rounded,
+    'Lighting',
+    'Poorly lit',
+    'Very well lit',
+  ),
+  _RatingCategory(
+    Icons.visibility_outlined,
+    'Public Visibility',
+    'Hidden / blocked view',
+    'Open & visible',
+  ),
+  _RatingCategory(
+    Icons.groups_outlined,
+    'Crowd Density',
+    'Empty / deserted',
+    'Very crowded',
+  ),
+  _RatingCategory(
+    Icons.local_police_outlined,
+    'Police/Security Presence',
+    'Rarely seen',
+    'Frequently seen',
+  ),
+  _RatingCategory(
+    Icons.report_outlined,
+    'Harassment Frequency',
+    'Rarely happens',
+    'Happens often',
+  ),
+  _RatingCategory(
+    Icons.shopping_bag_outlined,
+    'Theft/Snatching Frequency',
+    'Rarely happens',
+    'Happens often',
+  ),
+  _RatingCategory(
+    Icons.sentiment_satisfied_alt_outlined,
+    'Overall Feeling of Safety',
+    'Feels unsafe',
+    'Feels very safe',
+  ),
 ];
 
-class _StarRatingRow extends StatefulWidget {
+const List<String> _kLevelLabels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+
+const List<Color> _kGradientColors = [
+  Color(0xFF3FC46D),
+  Color(0xFFF5B942),
+  Color(0xFFE9564C),
+];
+
+Color _colorForLevel(num value) {
+  final t = ((value - 1) / 4).clamp(0.0, 1.0);
+  if (t <= 0.5) {
+    return Color.lerp(_kGradientColors[0], _kGradientColors[1], t / 0.5)!;
+  }
+  return Color.lerp(_kGradientColors[1], _kGradientColors[2], (t - 0.5) / 0.5)!;
+}
+
+class _MetricSliderRow extends StatefulWidget {
   final _RatingCategory category;
   final int value;
   final ValueChanged<int> onChanged;
 
-  const _StarRatingRow({
+  const _MetricSliderRow({
     required this.category,
     required this.value,
     required this.onChanged,
   });
 
   @override
-  State<_StarRatingRow> createState() => _StarRatingRowState();
+  State<_MetricSliderRow> createState() => _MetricSliderRowState();
 }
 
-class _StarRatingRowState extends State<_StarRatingRow>
-    with TickerProviderStateMixin {
-  static final TweenSequence<double> _popSequence = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween(begin: 1.0, end: 1.45).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 35,
-    ),
-    TweenSequenceItem(
-      tween: Tween(begin: 1.45, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
-      weight: 65,
-    ),
-  ]);
-
-  late final List<AnimationController> _controllers = List.generate(
-    5,
-    (_) => AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    ),
+class _MetricSliderRowState extends State<_MetricSliderRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _snapController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
   );
+  late double _displayValue = widget.value.toDouble();
+  bool _isDragging = false;
+
+  @override
+  void didUpdateWidget(covariant _MetricSliderRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_isDragging && !_snapController.isAnimating && widget.value != oldWidget.value) {
+      _displayValue = widget.value.toDouble();
+    }
+  }
 
   @override
   void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
+    _snapController.dispose();
     super.dispose();
   }
 
-  void _handleTap(int starValue) {
-    widget.onChanged(starValue);
-    for (var i = 0; i < 5; i++) {
-      if (i < starValue) {
-        Future.delayed(Duration(milliseconds: i * 55), () {
-          if (mounted) _controllers[i].forward(from: 0);
-        });
-      } else {
-        _controllers[i].value = 0;
-      }
-    }
+  void _glideTo(double target) {
+    final animation = Tween<double>(begin: _displayValue, end: target).animate(
+      CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
+    );
+    void listener() => setState(() => _displayValue = animation.value);
+    animation.addListener(listener);
+    _snapController
+      ..reset()
+      ..forward().whenCompleteOrCancel(() => animation.removeListener(listener));
   }
 
   @override
   Widget build(BuildContext context) {
+    final color = _colorForLevel(_displayValue);
+    final levelLabel = _kLevelLabels[_displayValue.round().clamp(1, 5) - 1];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -103,56 +152,158 @@ class _StarRatingRowState extends State<_StarRatingRow>
                 ),
               ),
             ),
-            AnimatedOpacity(
-              opacity: widget.value > 0 ? 1 : 0,
+            AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              child: Text(
-                '${widget.value}/5',
-                style: const TextStyle(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  fontSize: 13,
+                  fontSize: 12,
+                  color: color,
                 ),
+                child: Text(levelLabel),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: List.generate(5, (i) {
-            final starValue = i + 1;
-            final isFilled = starValue <= widget.value;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: GestureDetector(
-                onTap: () => _handleTap(starValue),
-                child: AnimatedBuilder(
-                  animation: _controllers[i],
-                  builder: (context, child) {
-                    final scale = isFilled
-                        ? _popSequence.transform(_controllers[i].value)
-                        : 1.0;
-                    return Transform.scale(scale: scale, child: child);
-                  },
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (child, animation) =>
-                        ScaleTransition(scale: animation, child: child),
-                    child: Icon(
-                      isFilled ? Icons.star_rounded : Icons.star_border_rounded,
-                      key: ValueKey(isFilled),
-                      size: 30,
-                      color: isFilled
-                          ? AppColors.warning
-                          : AppColors.text.withValues(alpha: 0.25),
-                    ),
-                  ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 34,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  gradient: const LinearGradient(colors: _kGradientColors),
                 ),
               ),
-            );
-          }),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 8,
+                  activeTrackColor: Colors.transparent,
+                  inactiveTrackColor: Colors.transparent,
+                  overlayShape: SliderComponentShape.noOverlay,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 11),
+                  thumbColor: color,
+                ),
+                child: Slider(
+                  value: _displayValue,
+                  min: 1,
+                  max: 5,
+                  onChangeStart: (_) {
+                    _snapController.stop();
+                    _isDragging = true;
+                  },
+                  onChanged: (v) => setState(() => _displayValue = v),
+                  onChangeEnd: (v) {
+                    _isDragging = false;
+                    final rounded = v.round().clamp(1, 5);
+                    widget.onChanged(rounded);
+                    _glideTo(rounded.toDouble());
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.category.lowHint,
+                style: TextStyle(fontSize: 11, color: AppColors.text.withValues(alpha: 0.55)),
+              ),
+              Text(
+                widget.category.highHint,
+                style: TextStyle(fontSize: 11, color: AppColors.text.withValues(alpha: 0.55)),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _SubmissionSuccessDialog extends StatelessWidget {
+  const _SubmissionSuccessDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3FC46D),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_rounded, color: Colors.white, size: 40),
+              ).animate().scale(
+                    duration: 450.ms,
+                    curve: Curves.elasticOut,
+                  ),
+              const SizedBox(height: 20),
+              const Text(
+                'Report Submitted',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.text,
+                ),
+              ).animate().fadeIn(delay: 150.ms, duration: 300.ms).slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 8),
+              Text(
+                'Your report has been submitted.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColors.text.withValues(alpha: 0.65)),
+              ).animate().fadeIn(delay: 220.ms, duration: 300.ms).slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Done'),
+                ),
+              ).animate().fadeIn(delay: 280.ms, duration: 300.ms),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -250,6 +401,26 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
     }
   }
 
+  Future<void> _handleSubmit() async {
+    // TODO: Persist the report to a backend once one is available.
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (context, _, _) => const _SubmissionSuccessDialog(),
+      transitionBuilder: (context, animation, _, child) {
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: curved, child: child),
+        );
+      },
+    );
+    if (mounted) Navigator.of(context).pop();
+  }
+
   Widget _sectionCard({required Widget child}) {
     return Container(
       width: double.infinity,
@@ -277,10 +448,10 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
 
   Widget _ratingRow(_RatingCategory category) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: _StarRatingRow(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: _MetricSliderRow(
         category: category,
-        value: _ratings[category.label] ?? 0,
+        value: _ratings[category.label] ?? 3,
         onChanged: (value) => setState(() => _ratings[category.label] = value),
       ),
     );
@@ -356,6 +527,11 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
               ),
               const SizedBox(height: 20),
               _sectionLabel('Rate this area'),
+              const SizedBox(height: 4),
+              Text(
+                'Drag each slider toward what you actually noticed. The text under each one explains what a low or high value means.',
+                style: TextStyle(fontSize: 12, color: AppColors.text.withValues(alpha: 0.6)),
+              ),
               const SizedBox(height: 12),
               _sectionCard(
                 child: Column(
@@ -387,10 +563,7 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Implement report submission
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: _handleSubmit,
                   icon: const Icon(Icons.send, size: 18),
                   label: const Text('Submit Report'),
                 ),
