@@ -28,7 +28,7 @@ class MockSafetyHeatmapRepository implements SafetyHeatmapRepository {
     }
 
     const gridStepDeg = 0.0024;
-    const gridHalfExtent = 4;
+    const gridHalfExtent = 15; // Increased from 4 to cover ~8km across
     for (var gx = -gridHalfExtent; gx <= gridHalfExtent; gx++) {
       for (var gy = -gridHalfExtent; gy <= gridHalfExtent; gy++) {
         final latOffset = gy * gridStepDeg;
@@ -56,6 +56,10 @@ class MockSafetyHeatmapRepository implements SafetyHeatmapRepository {
       _MockCluster(latOffset: -0.0080, lngOffset: 0.0070, baseScore: 0.10, spread: 0.0030, count: 7),
       _MockCluster(latOffset: 0.0040, lngOffset: 0.0090, baseScore: 0.85, spread: 0.0030, count: 5),
       _MockCluster(latOffset: -0.0045, lngOffset: -0.0085, baseScore: 0.15, spread: 0.0030, count: 5),
+      _MockCluster(latOffset: 0.0150, lngOffset: 0.0200, baseScore: 0.05, spread: 0.0050, count: 10),
+      _MockCluster(latOffset: -0.0200, lngOffset: -0.0150, baseScore: 0.95, spread: 0.0060, count: 12),
+      _MockCluster(latOffset: 0.0250, lngOffset: -0.0250, baseScore: 0.20, spread: 0.0080, count: 15),
+      _MockCluster(latOffset: -0.0300, lngOffset: 0.0300, baseScore: 0.80, spread: 0.0080, count: 15),
     ];
 
     for (final cluster in hotspots) {
