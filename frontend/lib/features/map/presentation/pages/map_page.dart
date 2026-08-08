@@ -13,6 +13,7 @@ import 'package:frontend/shared/widgets/commuter_toast.dart';
 import '../widgets/active_ride_panel.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
 import '../widgets/map_search_field.dart';
+import '../widgets/ride_survey_dialog.dart';
 import '../widgets/safety_heatmap_layer.dart';
 import '../widgets/safety_heatmap_legend.dart';
 import '../widgets/start_journey_fab.dart';
@@ -251,12 +252,20 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _endJourney() {
-    CommuterToast.show(
-      context,
-      message: 'Journey ended. Thanks for contributing!',
-      icon: Icons.check_circle_rounded,
+    showDialog(
+      context: context,
+      builder: (context) => RideSurveyDialog(
+        onSubmitted: (fare, rating, safetyRating, isStudentFare, feedback) {
+          final studentTag = isStudentFare ? ' (Student)' : '';
+          CommuterToast.show(
+            context,
+            message: 'Journey ended. ৳$fare$studentTag | $rating★ | $safetyRating',
+            icon: Icons.check_circle_rounded,
+          );
+          _clearRoute();
+        },
+      ),
     );
-    _clearRoute();
   }
 
   void _showAddStopDialog() {
