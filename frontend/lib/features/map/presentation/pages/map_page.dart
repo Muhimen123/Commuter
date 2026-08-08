@@ -6,11 +6,15 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
+import '../../data/mock_safety_heatmap_repository.dart';
+import '../../domain/entities/safety_point.dart';
 import '../widgets/safety_map_button.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import '../widgets/active_ride_panel.dart';
 import '../widgets/add_stop_confirmation_dialog.dart';
 import '../widgets/map_search_field.dart';
+import '../widgets/safety_heatmap_layer.dart';
+import '../widgets/safety_heatmap_legend.dart';
 import '../widgets/start_journey_fab.dart';
 
 class MapPage extends StatefulWidget {
@@ -36,6 +40,7 @@ class _MapPageState extends State<MapPage> {
   final TextEditingController _searchController = TextEditingController();
   final PhotonRepository _photonRepository = PhotonRepository();
   final OsrmRepository _osrmRepository = OsrmRepository();
+  final SafetyHeatmapRepository _safetyHeatmapRepository = MockSafetyHeatmapRepository();
   
   Timer? _debounceTimer;
   List<LocationSuggestion> _suggestions = [];
@@ -46,6 +51,8 @@ class _MapPageState extends State<MapPage> {
   List<LatLng> _routePoints = [];
 
   bool _heatmapEnabled = false;
+  bool _isLoadingSafetyPoints = false;
+  List<SafetyPoint> _safetyPoints = [];
 
   @override
   void didUpdateWidget(MapPage oldWidget) {
@@ -97,6 +104,33 @@ class _MapPageState extends State<MapPage> {
       controller.move(LatLng(position.latitude, position.longitude), 17);
     } catch (e) {
       debugPrint('Error getting current position: $e');
+    }
+  }
+
+  Future<void> _toggleHeatmap() async {
+    final turningOn = !_heatmapEnabled;
+    setState(() => _heatmapEnabled = turningOn);
+
+    if (!turningOn || _safetyPoints.isNotEmpty || _isLoadingSafetyPoints) return;
+
+    setState(() => _isLoadingSafetyPoints = true);
+
+    LatLng center;
+    try {
+      center = controller.camera.center;
+    } catch (_) {
+      center = (widget.initialLat != null && widget.initialLon != null)
+          ? LatLng(widget.initialLat!, widget.initialLon!)
+          : kDhakaSafetyCenter;
+    }
+
+    final points = await _safetyHeatmapRepository.getSafetyPoints(center: center);
+
+    if (mounted) {
+      setState(() {
+        _safetyPoints = points;
+        _isLoadingSafetyPoints = false;
+      });
     }
   }
 
@@ -254,6 +288,7 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final topPadding = MediaQuery.of(context).padding.top;
+    final safetyButtonBottom = _journeyStarted ? 150.0 : 32.0;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -273,7 +308,7 @@ class _MapPageState extends State<MapPage> {
             options: MapOptions(
               initialCenter: widget.initialLat != null 
                   ? LatLng(widget.initialLat!, widget.initialLon!) 
-                  : const LatLng(47.4358, 8.4737),
+                  : const LatLng(23.8103, 90.4125),
               initialZoom: 17.0,
             ),
             children: [
@@ -281,6 +316,16 @@ class _MapPageState extends State<MapPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.commuter.frontend',
               ),
+
+              // Safety heatmap sits directly above the base tiles, below
+              // everything else (route, markers, current location).
+              AnimatedOpacity(
+                opacity: _heatmapEnabled ? 1 : 0,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOut,
+                child: SafetyHeatmapLayer(points: _heatmapEnabled ? _safetyPoints : const []),
+              ),
+
               CurrentLocationLayer(),
 
               if (widget.sharedPersonName != null && widget.initialLat != null)
@@ -368,15 +413,41 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
           Positioned(
-            bottom: _journeyStarted ? 150 : 32,
+            bottom: safetyButtonBottom,
             left: 16,
-            child: SafetyMapButton(
-              isEnabled: _heatmapEnabled,
-              onTap: () {
-                setState(() {
-                  _heatmapEnabled = !_heatmapEnabled;
-                });
-              },
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                SafetyMapButton(
+                  isEnabled: _heatmapEnabled,
+                  onTap: _toggleHeatmap,
+                ),
+                if (_isLoadingSafetyPoints)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: safetyButtonBottom + 4,
+            left: 72,
+            child: IgnorePointer(
+              ignoring: !_heatmapEnabled,
+              child: AnimatedOpacity(
+                opacity: _heatmapEnabled ? 1 : 0,
+                duration: const Duration(milliseconds: 300),
+                child: const SafetyHeatmapLegend(),
+              ),
             ),
           ),
           if (_journeyStarted)
