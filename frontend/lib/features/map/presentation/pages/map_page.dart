@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import '../../data/osrm_repository.dart';
 import '../../data/photon_repository.dart';
 import '../widgets/safety_map_button.dart';
@@ -46,6 +47,7 @@ class _MapPageState extends State<MapPage> {
   List<LatLng> _routePoints = [];
 
   bool _heatmapEnabled = false;
+  List<WeightedLatLng> _heatMapData = [];
 
   @override
   void didUpdateWidget(MapPage oldWidget) {
@@ -70,6 +72,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     controller = MapController();
+    _generateMockHeatmapData();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialLat != null && widget.initialLon != null) {
@@ -242,6 +245,43 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  void _generateMockHeatmapData() {
+    final List<WeightedLatLng> data = [];
+    
+    // Centers for major cities/areas in Bangladesh for a broad mock coverage
+    final regions = [
+      LatLng(23.8103, 90.4125), // Dhaka (Central)
+      LatLng(23.7500, 90.3900), // Dhanmondi
+      LatLng(23.7900, 90.4000), // Banani
+      LatLng(23.8300, 90.4200), // Uttara
+      LatLng(22.3569, 91.7832), // Chittagong
+      LatLng(24.8949, 91.8687), // Sylhet
+      LatLng(24.3636, 88.6241), // Rajshahi
+      LatLng(22.8456, 89.5403), // Khulna
+    ];
+
+    for (var region in regions) {
+      // Generate a cluster of points around each region
+      for (int i = 0; i < 40; i++) {
+        // Create some spread
+        final double lat = region.latitude + (i * 0.005 * (i % 2 == 0 ? 1 : -1));
+        final double lon = region.longitude + (i * 0.005 * (i % 3 == 0 ? 1 : -1));
+        
+        // Intensity represents "Unsafety" - higher is more red
+        // i % 3 == 0 -> high intensity (Unsafe - Red)
+        // i % 3 == 1 -> medium intensity (Moderate - Yellow)
+        // i % 3 == 2 -> low intensity (Safe - Green)
+        final double intensity = (i % 3 + 1) / 3.0; 
+        
+        data.add(WeightedLatLng(LatLng(lat, lon), intensity));
+      }
+    }
+    
+    setState(() {
+      _heatMapData = data;
+    });
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
@@ -282,6 +322,19 @@ class _MapPageState extends State<MapPage> {
                 userAgentPackageName: 'com.commuter.frontend',
               ),
               CurrentLocationLayer(),
+
+              if (_heatmapEnabled && _heatMapData.isNotEmpty)
+                HeatMapLayer(
+                  heatMapDataSource: InMemoryHeatMapDataSource(data: _heatMapData),
+                  heatMapOptions: HeatMapOptions(
+                    gradient: {
+                      0.2: Colors.green,
+                      0.5: Colors.yellow,
+                      0.8: Colors.red,
+                    },
+                    minOpacity: 0.1,
+                  ),
+                ),
 
               if (widget.sharedPersonName != null && widget.initialLat != null)
                 MarkerLayer(
