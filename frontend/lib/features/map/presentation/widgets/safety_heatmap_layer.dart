@@ -27,7 +27,6 @@ class SafetyHeatmapLayer extends StatelessWidget {
   // Rings drawn outer -> inner, faintest -> most saturated.
   static const _ringFractions = [1.0, 0.72, 0.46, 0.22];
   static const _ringAlphas = [0.03, 0.07, 0.12, 0.20];
-  static const _baseRadiusMeters = 260.0;
 
   Color _colorForScore(BuildContext context, double score) {
     final safety = Theme.of(context).extension<SafetyColors>();
@@ -71,7 +70,7 @@ class SafetyHeatmapLayer extends StatelessWidget {
         circles.add(
           CircleMarker(
             point: point.position,
-            radius: _baseRadiusMeters * _ringFractions[ring],
+            radius: point.influenceRadiusMeters * _ringFractions[ring],
             useRadiusInMeter: true,
             color: _colorForScore(context, point.score).withValues(alpha: _ringAlphas[ring]),
             borderStrokeWidth: 0,
