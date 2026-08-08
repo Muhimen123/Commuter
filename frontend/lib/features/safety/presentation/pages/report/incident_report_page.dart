@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
@@ -234,6 +235,79 @@ class _MetricSliderRowState extends State<_MetricSliderRow>
   }
 }
 
+class _SubmissionSuccessDialog extends StatelessWidget {
+  const _SubmissionSuccessDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3FC46D),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_rounded, color: Colors.white, size: 40),
+              ).animate().scale(
+                    duration: 450.ms,
+                    curve: Curves.elasticOut,
+                  ),
+              const SizedBox(height: 20),
+              const Text(
+                'Report Submitted',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.text,
+                ),
+              ).animate().fadeIn(delay: 150.ms, duration: 300.ms).slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 8),
+              Text(
+                'Your report has been submitted.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColors.text.withValues(alpha: 0.65)),
+              ).animate().fadeIn(delay: 220.ms, duration: 300.ms).slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Done'),
+                ),
+              ).animate().fadeIn(delay: 280.ms, duration: 300.ms),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class IncidentReportPage extends StatefulWidget {
   const IncidentReportPage({super.key});
 
@@ -325,6 +399,26 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<void> _handleSubmit() async {
+    // TODO: Persist the report to a backend once one is available.
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (context, _, _) => const _SubmissionSuccessDialog(),
+      transitionBuilder: (context, animation, _, child) {
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: curved, child: child),
+        );
+      },
+    );
+    if (mounted) Navigator.of(context).pop();
   }
 
   Widget _sectionCard({required Widget child}) {
@@ -469,10 +563,7 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Implement report submission
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: _handleSubmit,
                   icon: const Icon(Icons.send, size: 18),
                   label: const Text('Submit Report'),
                 ),
