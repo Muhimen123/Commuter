@@ -203,7 +203,10 @@ class BusProfilePage extends StatelessWidget {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                        horizontal: AppSpacing.md,
+                      ),
                       child: Row(
                         children: [
                           Container(
