@@ -31,7 +31,7 @@ class RideCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _RouteNumberBox(routeNumber: ride.routeNumber),
+                _SafetyScoreBox(safetyScore: ride.safetyScore),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -93,10 +93,10 @@ class RideCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
+                    Icon(Icons.place, size: 18, color: colorScheme.primary),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      'Safety Score: ${ride.safetyScore}%',
+                      ride.destination,
                       style: textTheme.labelLarge?.copyWith(color: colorScheme.primary),
                     ),
                   ],
@@ -123,7 +123,7 @@ class RideCard extends StatelessWidget {
                     minimumSize: const Size(120, 40),
                     shape: const StadiumBorder(),
                   ),
-                  child: const Text('Track Ride'),
+                  child: const Text('View Profile'),
                 ),
               ],
             ),
@@ -165,10 +165,10 @@ class _RecommendedBadge extends StatelessWidget {
   }
 }
 
-class _RouteNumberBox extends StatelessWidget {
-  final String routeNumber;
+class _SafetyScoreBox extends StatelessWidget {
+  final int safetyScore;
 
-  const _RouteNumberBox({required this.routeNumber});
+  const _SafetyScoreBox({required this.safetyScore});
 
   @override
   Widget build(BuildContext context) {
@@ -181,12 +181,19 @@ class _RouteNumberBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       alignment: Alignment.center,
-      child: Text(
-        routeNumber,
-        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.verified_user, size: 20, color: colorScheme.onPrimaryContainer),
+          const SizedBox(height: 2),
+          Text(
+            '$safetyScore%',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
       ),
     );
   }

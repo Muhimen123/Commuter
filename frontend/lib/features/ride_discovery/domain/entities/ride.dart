@@ -4,6 +4,7 @@ class Ride {
   final String id;
   final String routeNumber;
   final String routeName;
+  final String destination;
   final String via;
   final String arrivalTime;
   final RideStatus status;
@@ -18,6 +19,7 @@ class Ride {
     required this.id,
     required this.routeNumber,
     required this.routeName,
+    required this.destination,
     required this.via,
     required this.arrivalTime,
     required this.status,
