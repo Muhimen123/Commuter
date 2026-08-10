@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:go_router/go_router.dart';
 
 class RideCard extends StatelessWidget {
   final Ride ride;
@@ -20,7 +21,7 @@ class RideCard extends StatelessWidget {
         side: BorderSide(color: colorScheme.surfaceContainerHighest),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -31,7 +32,7 @@ class RideCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _RouteNumberBox(routeNumber: ride.routeNumber),
+                _SafetyScoreBox(safetyScore: ride.safetyScore),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -39,31 +40,17 @@ class RideCard extends StatelessWidget {
                     children: [
                       Text(
                         ride.routeName,
-                        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       Text(
                         'via ${ride.via}',
                         style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
-                      if (ride.alertMessage != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          children: [
-                            Icon(Icons.warning, size: 16, color: colorScheme.error),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(
-                              ride.alertMessage!,
-                              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
-                ),
-                _ArrivalTimeBox(
-                  time: ride.arrivalTime,
-                  status: ride.status,
                 ),
               ],
             ),
@@ -93,10 +80,10 @@ class RideCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
+                    Icon(Icons.place, size: 18, color: colorScheme.primary),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      'Safety Score: ${ride.safetyScore}%',
+                      ride.destination,
                       style: textTheme.labelLarge?.copyWith(color: colorScheme.primary),
                     ),
                   ],
@@ -118,12 +105,14 @@ class RideCard extends StatelessWidget {
                   ],
                 ),
                 FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/bus_profile', extra: ride);
+                  },
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(120, 40),
                     shape: const StadiumBorder(),
                   ),
-                  child: const Text('Track Ride'),
+                  child: const Text('View Profile'),
                 ),
               ],
             ),
@@ -165,10 +154,10 @@ class _RecommendedBadge extends StatelessWidget {
   }
 }
 
-class _RouteNumberBox extends StatelessWidget {
-  final String routeNumber;
+class _SafetyScoreBox extends StatelessWidget {
+  final int safetyScore;
 
-  const _RouteNumberBox({required this.routeNumber});
+  const _SafetyScoreBox({required this.safetyScore});
 
   @override
   Widget build(BuildContext context) {
@@ -181,65 +170,20 @@ class _RouteNumberBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       alignment: Alignment.center,
-      child: Text(
-        routeNumber,
-        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.verified_user, size: 20, color: colorScheme.onPrimaryContainer),
+          const SizedBox(height: 2),
+          Text(
+            '$safetyScore%',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _ArrivalTimeBox extends StatelessWidget {
-  final String time;
-  final RideStatus status;
-
-  const _ArrivalTimeBox({required this.time, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    Color statusColor;
-    String statusText;
-
-    switch (status) {
-      case RideStatus.arriving:
-        statusColor = colorScheme.primary;
-        statusText = 'ARRIVING';
-        break;
-      case RideStatus.scheduled:
-        statusColor = colorScheme.onSurfaceVariant;
-        statusText = 'SCHEDULED';
-        break;
-      case RideStatus.delayed:
-        statusColor = colorScheme.tertiary;
-        statusText = 'DELAYED';
-        break;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          time,
-          style: textTheme.headlineMedium?.copyWith(
-            color: status == RideStatus.arriving ? statusColor : colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          statusText,
-          style: textTheme.labelMedium?.copyWith(
-            color: statusColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-      ],
     );
   }
 }
