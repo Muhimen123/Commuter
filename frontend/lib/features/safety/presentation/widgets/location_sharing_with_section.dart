@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 
 class LocationSharingWithSection extends StatefulWidget {
   const LocationSharingWithSection({super.key});
@@ -58,6 +59,11 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
                         _sharingWith.add(contact);
                       });
                       Navigator.pop(context);
+                      CommuterToast.show(
+                        context,
+                        message: 'Now sharing live location with $contact',
+                        icon: Icons.share_location,
+                      );
                     },
                   );
                 },
@@ -124,6 +130,27 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
                 leading: CircleAvatar(child: Text(name[0])),
                 title: Text(name),
                 subtitle: const Text('Active tracking'),
+                trailing: IconButton(
+                  icon: Icon(
+                    Icons.remove_circle_outline, 
+                    size: 20, 
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _sharingWith.remove(name);
+                    });
+                    CommuterToast.show(
+                      context,
+                      message: 'Stopped sharing location with $name',
+                      icon: Icons.person_remove_rounded,
+                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                      iconBackgroundColor: Theme.of(context).colorScheme.error,
+                      iconForegroundColor: Theme.of(context).colorScheme.onError,
+                    );
+                  },
+                ),
               ),
             )),
           ],
