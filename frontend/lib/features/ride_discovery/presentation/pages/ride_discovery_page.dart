@@ -76,7 +76,7 @@ class RideDiscoveryPage extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
         children: [
           const RideSearchField(),
           const SizedBox(height: AppSpacing.md),

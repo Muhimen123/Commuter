@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:go_router/go_router.dart';
 
 class RideCard extends StatelessWidget {
   final Ride ride;
@@ -16,11 +17,11 @@ class RideCard extends StatelessWidget {
       elevation: 0,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         side: BorderSide(color: colorScheme.surfaceVariant),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,7 +40,10 @@ class RideCard extends StatelessWidget {
                     children: [
                       Text(
                         ride.routeName,
-                        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       Text(
                         'via ${ride.via}',
@@ -118,7 +122,9 @@ class RideCard extends StatelessWidget {
                   ],
                 ),
                 FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/bus_profile', extra: ride);
+                  },
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(120, 40),
                     shape: const StadiumBorder(),
