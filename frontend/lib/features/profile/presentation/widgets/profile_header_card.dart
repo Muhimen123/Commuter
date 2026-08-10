@@ -21,7 +21,7 @@ class ProfileHeaderCard extends StatelessWidget {
         horizontal: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF0F1F5),
         borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       ),
       child: Column(

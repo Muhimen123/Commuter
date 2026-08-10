@@ -19,7 +19,7 @@ class RideHoursCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: const Color(0xFFF0F1F5),
         borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(
           color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),

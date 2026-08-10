@@ -22,7 +22,7 @@ class ProfileNavCard extends StatelessWidget {
     final iconColor = isDestructive ? colorScheme.error : colorScheme.primary;
 
     return Material(
-      color: colorScheme.surface,
+      color: const Color(0xFFF0F1F5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medium),
         side: BorderSide(
