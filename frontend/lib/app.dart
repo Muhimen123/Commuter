@@ -10,6 +10,8 @@ import 'package:frontend/features/auth/presentation/pages/forgot_password_page.d
 import 'package:frontend/features/auth/presentation/pages/verify_code_page.dart';
 import 'package:frontend/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:frontend/features/ride_discovery/presentation/pages/ride_discovery_page.dart';
+import 'package:frontend/features/ride_discovery/presentation/pages/bus_profile_page.dart';
+import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 
 import 'package:frontend/shared/widgets/navigation_bar/commuter_scaffold.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
@@ -112,6 +114,13 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/trusted_contacts',
       builder: (context, state) => const TrustedContactsPage(),
+    ),
+    GoRoute(
+      path: '/bus_profile',
+      builder: (context, state) {
+        final ride = state.extra as Ride;
+        return BusProfilePage(ride: ride);
+      },
     ),
   ],
 );

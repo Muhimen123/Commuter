@@ -5,53 +5,94 @@ import 'package:frontend/features/ride_discovery/presentation/widgets/filter_chi
 import 'package:frontend/features/ride_discovery/presentation/widgets/ride_card.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 
-class RideDiscoveryPage extends StatelessWidget {
+class RideDiscoveryPage extends StatefulWidget {
   const RideDiscoveryPage({super.key});
+
+  @override
+  State<RideDiscoveryPage> createState() => _RideDiscoveryPageState();
+}
+
+class _RideDiscoveryPageState extends State<RideDiscoveryPage> {
+  String _selectedFilter = 'Nearby';
+
+  final List<Ride> _allRides = [
+    const Ride(
+      id: '1',
+      routeNumber: '42',
+      routeName: 'Turag Transport',
+      destination: 'Motijheel',
+      via: 'Farmgate',
+      status: RideStatus.arriving,
+      rating: 4.8,
+      reviewCount: 128,
+      safetyScore: 98,
+      fare: 35.00,
+      isRecommended: true,
+    ),
+    const Ride(
+      id: '2',
+      routeNumber: '15',
+      routeName: 'Mirpur Link',
+      destination: 'Mirpur 10',
+      via: 'Kakrail',
+      status: RideStatus.scheduled,
+      rating: 4.5,
+      reviewCount: 84,
+      safetyScore: 92,
+      fare: 25.00,
+    ),
+    const Ride(
+      id: '3',
+      routeNumber: '88',
+      routeName: 'Balaka Paribahan',
+      destination: 'Gulshan 1',
+      via: 'Badda',
+      status: RideStatus.delayed,
+      rating: 4.9,
+      reviewCount: 215,
+      safetyScore: 99,
+      fare: 40.00,
+    ),
+    const Ride(
+      id: '4',
+      routeNumber: '7',
+      routeName: 'Bikalpa Auto',
+      destination: 'Azimpur',
+      via: 'Nilkhet',
+      status: RideStatus.arriving,
+      rating: 4.2,
+      reviewCount: 45,
+      safetyScore: 85,
+      fare: 15.00,
+    ),
+    const Ride(
+      id: '5',
+      routeNumber: '9',
+      routeName: 'Salsabil',
+      destination: 'Jatrabari',
+      via: 'Sayedabad',
+      status: RideStatus.scheduled,
+      rating: 4.7,
+      reviewCount: 156,
+      safetyScore: 95,
+      fare: 30.00,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final List<Ride> rides = [
-      const Ride(
-        id: '1',
-        routeNumber: '42',
-        routeName: 'Downtown Express',
-        via: 'Grand Ave',
-        arrivalTime: '2 min',
-        status: RideStatus.arriving,
-        rating: 4.8,
-        reviewCount: 128,
-        safetyScore: 98,
-        fare: 2.50,
-        isRecommended: true,
-      ),
-      const Ride(
-        id: '2',
-        routeNumber: '15',
-        routeName: 'Uptown Local',
-        via: 'State St',
-        arrivalTime: '8 min',
-        status: RideStatus.scheduled,
-        rating: 4.5,
-        reviewCount: 84,
-        safetyScore: 92,
-        fare: 2.50,
-      ),
-      const Ride(
-        id: '3',
-        routeNumber: '88',
-        routeName: 'Airport Shuttle',
-        via: 'Detour active',
-        arrivalTime: '15 min',
-        status: RideStatus.delayed,
-        rating: 4.9,
-        reviewCount: 215,
-        safetyScore: 99,
-        fare: 5.00,
-        alertMessage: 'Detour active',
-      ),
-    ];
+    // Apply sorting/filtering based on selected chip
+    List<Ride> displayedRides = List.from(_allRides);
+    if (_selectedFilter == 'Highly Rated') {
+      displayedRides.sort((a, b) => b.rating.compareTo(a.rating));
+    } else if (_selectedFilter == 'Safest Routes') {
+      displayedRides.sort((a, b) => b.safetyScore.compareTo(a.safetyScore));
+    } else if (_selectedFilter == 'Lowest Fare') {
+      displayedRides.sort((a, b) => a.fare.compareTo(b.fare));
+    }
+    // 'Nearby' uses the default order
 
     return Scaffold(
       backgroundColor: colorScheme.background,
@@ -73,13 +114,20 @@ class RideDiscoveryPage extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
         children: [
           const RideSearchField(),
           const SizedBox(height: AppSpacing.md),
-          const RideFilterChips(),
+          RideFilterChips(
+            selectedFilter: _selectedFilter,
+            onFilterSelected: (filter) {
+              setState(() {
+                _selectedFilter = filter;
+              });
+            },
+          ),
           const SizedBox(height: AppSpacing.md),
-          ...rides.map((ride) => Padding(
+          ...displayedRides.map((ride) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: RideCard(ride: ride),
               )),
