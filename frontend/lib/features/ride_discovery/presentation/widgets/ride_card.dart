@@ -17,7 +17,7 @@ class RideCard extends StatelessWidget {
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(color: colorScheme.surfaceVariant),
+        side: BorderSide(color: colorScheme.surfaceContainerHighest),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),

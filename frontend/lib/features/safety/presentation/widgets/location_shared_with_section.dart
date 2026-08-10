@@ -7,7 +7,7 @@ class LocationSharedWithSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Mock data for people sharing their location with us
-    final List<Map<String, String>> _sharedBy = [
+    final List<Map<String, String>> sharedBy = [
       {'name': 'Sarah Johnson', 'status': '2 mins ago'},
       {'name': 'Mark Roberts', 'status': 'Live'},
     ];
@@ -34,7 +34,7 @@ class LocationSharedWithSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          ..._sharedBy.map((person) => Padding(
+          ...sharedBy.map((person) => Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
