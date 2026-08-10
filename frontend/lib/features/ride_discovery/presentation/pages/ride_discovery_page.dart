@@ -95,44 +95,29 @@ class _RideDiscoveryPageState extends State<RideDiscoveryPage> {
     // 'Nearby' uses the default order
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 1,
-        title: Row(
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
           children: [
-            const Icon(Icons.menu),
-            const SizedBox(width: AppSpacing.md),
-            Text(
-              'Commuter',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+            const RideSearchField(),
+            const SizedBox(height: AppSpacing.md),
+            RideFilterChips(
+              selectedFilter: _selectedFilter,
+              onFilterSelected: (filter) {
+                setState(() {
+                  _selectedFilter = filter;
+                });
+              },
             ),
+            const SizedBox(height: AppSpacing.md),
+            ...displayedRides.map((ride) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: RideCard(ride: ride),
+                )),
+            const SizedBox(height: 80), // Space for bottom nav
           ],
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
-        children: [
-          const RideSearchField(),
-          const SizedBox(height: AppSpacing.md),
-          RideFilterChips(
-            selectedFilter: _selectedFilter,
-            onFilterSelected: (filter) {
-              setState(() {
-                _selectedFilter = filter;
-              });
-            },
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...displayedRides.map((ride) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: RideCard(ride: ride),
-              )),
-          const SizedBox(height: 80), // Space for bottom nav
-        ],
       ),
     );
   }

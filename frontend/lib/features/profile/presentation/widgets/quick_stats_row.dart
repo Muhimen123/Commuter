@@ -92,7 +92,7 @@ class _StatItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF0F1F5),
         borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(
           color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),

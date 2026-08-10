@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: FutureBuilder<ProfileEntity>(
           future: _profileFuture,

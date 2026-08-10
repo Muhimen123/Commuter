@@ -39,7 +39,7 @@ class BusProfilePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: colorScheme.surfaceContainer,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -84,11 +84,15 @@ class BusProfilePage extends StatelessWidget {
                     width: double.infinity,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: colorScheme.surface,
+                      color: const Color(0xFFF0F1F5),
                       borderRadius: BorderRadius.circular(AppRadius.extraLarge),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -190,19 +194,25 @@ class BusProfilePage extends StatelessWidget {
                   // Crowd Level Card
                   Card(
                     elevation: 0,
-                    color: colorScheme.surface,
+                    color: const Color(0xFFF0F1F5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
-                      side: BorderSide(color: colorScheme.surfaceVariant),
+                      side: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                        horizontal: AppSpacing.md,
+                      ),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(AppSpacing.xs),
                             decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withOpacity(0.3),
+                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.groups, size: 20, color: colorScheme.primary),
@@ -242,10 +252,13 @@ class BusProfilePage extends StatelessWidget {
                   // Stoppage Points List (Dropdown / ExpansionTile)
                   Card(
                     elevation: 0,
-                    color: colorScheme.surface,
+                    color: const Color(0xFFF0F1F5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
-                      side: BorderSide(color: colorScheme.surfaceVariant),
+                      side: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Theme(
@@ -415,11 +428,14 @@ class _InfoCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      elevation: 4,
-      shadowColor: Colors.black12,
-      color: colorScheme.surface,
+      elevation: 0,
+      color: const Color(0xFFF0F1F5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medium),
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
@@ -477,10 +493,13 @@ class _ReviewCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: colorScheme.surface,
+      color: const Color(0xFFF0F1F5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(color: colorScheme.surfaceContainerHighest),
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
