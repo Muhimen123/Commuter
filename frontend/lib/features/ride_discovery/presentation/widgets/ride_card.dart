@@ -49,25 +49,8 @@ class RideCard extends StatelessWidget {
                         'via ${ride.via}',
                         style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
-                      if (ride.alertMessage != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          children: [
-                            Icon(Icons.warning, size: 16, color: colorScheme.error),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(
-                              ride.alertMessage!,
-                              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
-                ),
-                _ArrivalTimeBox(
-                  time: ride.arrivalTime,
-                  status: ride.status,
                 ),
               ],
             ),
@@ -201,58 +184,6 @@ class _SafetyScoreBox extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ArrivalTimeBox extends StatelessWidget {
-  final String time;
-  final RideStatus status;
-
-  const _ArrivalTimeBox({required this.time, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    Color statusColor;
-    String statusText;
-
-    switch (status) {
-      case RideStatus.arriving:
-        statusColor = colorScheme.primary;
-        statusText = 'ARRIVING';
-        break;
-      case RideStatus.scheduled:
-        statusColor = colorScheme.onSurfaceVariant;
-        statusText = 'SCHEDULED';
-        break;
-      case RideStatus.delayed:
-        statusColor = colorScheme.tertiary;
-        statusText = 'DELAYED';
-        break;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          time,
-          style: textTheme.headlineMedium?.copyWith(
-            color: status == RideStatus.arriving ? statusColor : colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          statusText,
-          style: textTheme.labelMedium?.copyWith(
-            color: statusColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-      ],
     );
   }
 }

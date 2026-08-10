@@ -6,14 +6,12 @@ class Ride {
   final String routeName;
   final String destination;
   final String via;
-  final String arrivalTime;
   final RideStatus status;
   final double rating;
   final int reviewCount;
   final int safetyScore;
   final double fare;
   final bool isRecommended;
-  final String? alertMessage;
 
   const Ride({
     required this.id,
@@ -21,13 +19,11 @@ class Ride {
     required this.routeName,
     required this.destination,
     required this.via,
-    required this.arrivalTime,
     required this.status,
     required this.rating,
     required this.reviewCount,
     required this.safetyScore,
     required this.fare,
     this.isRecommended = false,
-    this.alertMessage,
   });
 }
