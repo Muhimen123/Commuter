@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'transit_alert_card.dart';
 import 'sharing_section.dart';
 import 'survey_history_section.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class SafetyDashboardSheet extends StatelessWidget {
   final double maxChildSize;
@@ -18,18 +19,9 @@ class SafetyDashboardSheet extends StatelessWidget {
       minChildSize: 0.12,
       maxChildSize: maxChildSize,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 15,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
+        return GlassContainer(
+          padding: EdgeInsets.zero,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           child: ListView(
             controller: scrollController,
             padding: const EdgeInsets.all(24),

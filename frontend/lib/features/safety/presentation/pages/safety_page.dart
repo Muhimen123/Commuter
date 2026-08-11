@@ -3,6 +3,7 @@ import '../widgets/location_sharing_with_section.dart';
 import '../widgets/location_shared_with_section.dart';
 import '../widgets/survey_history_section.dart';
 import '../widgets/safety_action_buttons.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class SafetyPage extends StatefulWidget {
   const SafetyPage({super.key});
@@ -14,9 +15,11 @@ class SafetyPage extends StatefulWidget {
 class _SafetyPageState extends State<SafetyPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: ListView(
           padding: const EdgeInsets.all(24),
           children: const [
             Text(
@@ -46,6 +49,7 @@ class _SafetyPageState extends State<SafetyPage> {
             SizedBox(height: 32),
           ],
         ),
+      ),
       ),
     );
   }

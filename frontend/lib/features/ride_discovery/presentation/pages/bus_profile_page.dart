@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class BusProfilePage extends StatelessWidget {
   final Ride ride;
@@ -38,9 +40,10 @@ class BusProfilePage extends StatelessWidget {
       'Mirpur 10',
     ];
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Column(
           children: [
             // Standard App Bar alternative matching profile header styling
@@ -79,26 +82,14 @@ class BusProfilePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPaddingHorizontal),
                 children: [
                   // Map Card
-                  Container(
+                  GlassContainer(
                     height: 250,
                     width: double.infinity,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F1F5),
+                    padding: EdgeInsets.zero,
+                    borderRadius: BorderRadius.circular(AppRadius.extraLarge),
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: FlutterMap(
+                      child: FlutterMap(
                       options: MapOptions(
                         initialCenter: const LatLng(23.7770, 90.3860),
                         initialZoom: 11.5,
@@ -138,6 +129,7 @@ class BusProfilePage extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
 
@@ -192,16 +184,8 @@ class BusProfilePage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Crowd Level Card
-                  Card(
-                    elevation: 0,
-                    color: const Color(0xFFF0F1F5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.medium),
-                      side: BorderSide(
-                        color: colorScheme.outline.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
+                  GlassContainer(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.md,
@@ -250,17 +234,8 @@ class BusProfilePage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Stoppage Points List (Dropdown / ExpansionTile)
-                  Card(
-                    elevation: 0,
-                    color: const Color(0xFFF0F1F5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.medium),
-                      side: BorderSide(
-                        color: colorScheme.outline.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    clipBehavior: Clip.antiAlias,
+                  GlassContainer(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                     child: Theme(
                       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
@@ -278,21 +253,24 @@ class BusProfilePage extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final isFirst = index == 0;
                               final isLast = index == stops.length - 1;
-                              return ListTile(
-                                leading: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      isFirst || isLast ? Icons.location_on : Icons.trip_origin,
-                                      color: isFirst ? colorScheme.primary : (isLast ? colorScheme.error : colorScheme.onSurfaceVariant),
-                                      size: isFirst || isLast ? 24 : 16,
+                              return Material(
+                                type: MaterialType.transparency,
+                                child: ListTile(
+                                  leading: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        isFirst || isLast ? Icons.location_on : Icons.trip_origin,
+                                        color: isFirst ? colorScheme.primary : (isLast ? colorScheme.error : colorScheme.onSurfaceVariant),
+                                        size: isFirst || isLast ? 24 : 16,
+                                      ),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    stops[index],
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: isFirst || isLast ? FontWeight.bold : FontWeight.normal,
                                     ),
-                                  ],
-                                ),
-                                title: Text(
-                                  stops[index],
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    fontWeight: isFirst || isLast ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 ),
                               );
@@ -309,6 +287,7 @@ class BusProfilePage extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -319,12 +298,12 @@ class BusProfilePage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.extraLarge)),
-      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       builder: (context) {
-        return DraggableScrollableSheet(
+        return GlassContainer(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.extraLarge)),
+          child: DraggableScrollableSheet(
           initialChildSize: 0.6,
           minChildSize: 0.4,
           maxChildSize: 0.9,
@@ -405,6 +384,7 @@ class BusProfilePage extends StatelessWidget {
               ],
             );
           },
+        ),
         );
       },
     );
@@ -427,16 +407,8 @@ class _InfoCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      elevation: 0,
-      color: const Color(0xFFF0F1F5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(
-          color: colorScheme.outline.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
         child: Column(
@@ -491,16 +463,8 @@ class _ReviewCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      elevation: 0,
-      color: const Color(0xFFF0F1F5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(
-          color: colorScheme.outline.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-      ),
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(

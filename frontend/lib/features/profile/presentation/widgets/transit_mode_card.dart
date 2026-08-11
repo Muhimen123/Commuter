@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class TransitModeCard extends StatelessWidget {
   final List<TransitModeShare> transitModes;
@@ -20,16 +21,9 @@ class TransitModeCard extends StatelessWidget {
       safetyColors?.warning ?? Colors.amber,
     ];
 
-    return Container(
+    return GlassContainer(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(
-          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-        ),
-      ),
       child: Row(
         children: [
           Expanded(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/add_contact_dialog.dart';
+import '../../../../shared/widgets/glass_scaffold_background.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class TrustedContactsPage extends StatefulWidget {
   const TrustedContactsPage({super.key});
@@ -33,45 +35,45 @@ class _TrustedContactsPageState extends State<TrustedContactsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trusted Guardians'),
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _contacts.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Trusted Guardians'),
+          backgroundColor: Colors.transparent,
+        ),
+        body: ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: _contacts.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final contact = _contacts[index];
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              ),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.person,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+          return GlassContainer(
+            borderRadius: BorderRadius.circular(16),
+            child: Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.person,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
-              ),
-              title: Text(
-                contact['name']!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(contact['number']!),
-              trailing: IconButton(
-                icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
-                onPressed: () {
-                  setState(() {
-                    _contacts.removeAt(index);
-                  });
-                },
+                title: Text(
+                  contact['name']!,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(contact['number']!),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                  onPressed: () {
+                    setState(() {
+                      _contacts.removeAt(index);
+                    });
+                  },
+                ),
               ),
             ),
           );
@@ -89,6 +91,7 @@ class _TrustedContactsPageState extends State<TrustedContactsPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

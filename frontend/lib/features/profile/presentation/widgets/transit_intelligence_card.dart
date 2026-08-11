@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class TransitIntelligenceCard extends StatelessWidget {
   final IconData icon;
@@ -17,15 +18,8 @@ class TransitIntelligenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

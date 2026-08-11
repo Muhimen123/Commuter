@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class VerifyCodePage extends StatelessWidget {
   const VerifyCodePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return GlassScaffoldBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => context.pop(),
@@ -39,12 +43,8 @@ class VerifyCodePage extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Card(
-                elevation: 4,
-                shadowColor: Colors.black12,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-                ),
+              GlassContainer(
+                borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                 child: const Padding(
                   padding: EdgeInsets.all(AppSpacing.lg),
                   child: AuthTextField(
@@ -71,6 +71,7 @@ class VerifyCodePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

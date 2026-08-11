@@ -59,3 +59,16 @@ class AppColors {
   static const Color safetyWarning = Color(0xFFE49940);
   static const Color safetyDanger = Color(0xFFFF7675);
 }
+
+class AppBlur {
+  static const double none = 0.0;
+  static const double defaultBlur = 15.0;
+  static const double light = 8.0;
+  static const double heavy = 24.0;
+}
+
+class AppGlass {
+  static const double defaultOpacity = 0.65;
+  static const double backgroundOpacity = 0.3;
+  static const double borderOpacity = 0.2;
+}

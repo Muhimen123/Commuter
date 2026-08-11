@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class FareSpentByRouteCard extends StatelessWidget {
   final List<RouteSpend> spendByRoute;
@@ -15,16 +16,9 @@ class FareSpentByRouteCard extends StatelessWidget {
         ? spendByRoute.map((e) => e.totalSpend).reduce(math.max)
         : 1.0;
 
-    return Container(
+    return GlassContainer(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(
-          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

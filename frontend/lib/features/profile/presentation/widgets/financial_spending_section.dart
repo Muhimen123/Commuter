@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class FinancialSpendingSection extends StatelessWidget {
   final FinancialMetrics metrics;
@@ -25,16 +26,9 @@ class FinancialSpendingSection extends StatelessWidget {
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Container(
+        GlassContainer(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F1F5),
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            border: Border.all(
-              color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-            ),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -82,16 +76,9 @@ class FinancialSpendingSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Container(
+              child: GlassContainer(
                 height: 120,
                 padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F1F5),
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                  border: Border.all(
-                    color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-                  ),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -126,16 +113,9 @@ class FinancialSpendingSection extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: Container(
+              child: GlassContainer(
                 height: 120,
                 padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F1F5),
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                  border: Border.all(
-                    color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-                  ),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

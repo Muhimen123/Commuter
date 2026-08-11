@@ -3,14 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: ConstrainedBox(
@@ -39,12 +43,8 @@ class LoginPage extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black12,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-                    ),
+                  GlassContainer(
+                    borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
@@ -119,6 +119,7 @@ class LoginPage extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

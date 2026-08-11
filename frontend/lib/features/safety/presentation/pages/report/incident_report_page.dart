@@ -5,6 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class _RatingCategory {
   final IconData icon;
@@ -243,20 +245,9 @@ class _SubmissionSuccessDialog extends StatelessWidget {
     return Center(
       child: Material(
         color: Colors.transparent,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 40),
+        child: GlassContainer(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+          borderRadius: BorderRadius.circular(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -422,14 +413,9 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
   }
 
   Widget _sectionCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
+    return GlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: child,
     );
   }
@@ -459,11 +445,12 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         title: const Text(
           'Report Condition',
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.text),
@@ -571,6 +558,7 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

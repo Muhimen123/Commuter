@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class RideFilterChips extends StatelessWidget {
   final String selectedFilter;
@@ -73,18 +74,13 @@ class _FilterChip extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.small),
-      child: Container(
-        height: 32,
+      child: GlassContainer(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.secondaryContainer : colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadius.small),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : colorScheme.outlineVariant,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        borderRadius: BorderRadius.circular(AppRadius.small),
+        child: SizedBox(
+          height: 32,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
@@ -100,6 +96,7 @@ class _FilterChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class ProfileNavCard extends StatelessWidget {
   final IconData icon;
@@ -21,18 +22,13 @@ class ProfileNavCard extends StatelessWidget {
     final color = isDestructive ? colorScheme.error : colorScheme.onSurface;
     final iconColor = isDestructive ? colorScheme.error : colorScheme.primary;
 
-    return Material(
-      color: const Color(0xFFF0F1F5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(
-          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -59,6 +55,7 @@ class ProfileNavCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../data/photon_repository.dart';
+import '../../../../shared/widgets/glass_container.dart';
 import 'map_suggestions_list.dart';
 
 class MapSearchField extends StatelessWidget {
@@ -32,20 +33,12 @@ class MapSearchField extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
+        GlassContainer(
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          padding: EdgeInsets.zero,
+          child: SizedBox(
+            height: 56,
+            child: Row(
             children: [
               const SizedBox(width: 16),
               Icon(
@@ -91,6 +84,7 @@ class MapSearchField extends StatelessWidget {
               const SizedBox(width: 4),
             ],
           ),
+        ),
         ),
         MapSuggestionsList(
           suggestions: suggestions,

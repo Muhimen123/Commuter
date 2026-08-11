@@ -3,6 +3,7 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/profile_entity.dart';
 import 'safety_metric_item_row.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class SafetyMetricsSection extends StatelessWidget {
   final SafetyMetrics metrics;
@@ -29,15 +30,8 @@ class SafetyMetricsSection extends StatelessWidget {
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Container(
+        GlassContainer(
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F1F5),
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-            ),
-          ),
           child: Column(
             children: [
               SafetyMetricItemRow(

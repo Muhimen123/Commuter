@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class RideSurveyDialog extends StatefulWidget {
   const RideSurveyDialog({
@@ -38,14 +39,18 @@ class _RideSurveyDialogState extends State<RideSurveyDialog> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return AlertDialog(
-      backgroundColor: colorScheme.surface,
-      surfaceTintColor: Colors.transparent,
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(
+      child: GlassContainer(
         borderRadius: BorderRadius.circular(16),
-      ),
-      title: Row(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
         children: [
           Icon(Icons.rate_review_rounded, color: colorScheme.primary, size: 28),
           const SizedBox(width: 12),
@@ -55,12 +60,14 @@ class _RideSurveyDialogState extends State<RideSurveyDialog> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'How was your ride? Help the community by sharing your fare, safety, and feedback.',
@@ -96,40 +103,49 @@ class _RideSurveyDialogState extends State<RideSurveyDialog> {
               controller: _feedbackController,
             ),
           ],
+                    ),
+                  ),
+                ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onSubmitted(0, 5, 'Safe & Professional', false, 'Skipped survey');
+                  },
+                  child: Text(
+                    'Skip',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  onPressed: () {
+                    final fare = int.tryParse(_fareController.text.trim()) ?? 10;
+                    final feedback = _feedbackController.text.trim();
+                    Navigator.of(context).pop();
+                    widget.onSubmitted(fare, _rating, _safetyRating, _isStudentFare, feedback);
+                  },
+                  child: const Text(
+                    'Submit & Finish',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            widget.onSubmitted(0, 5, 'Safe & Professional', false, 'Skipped survey');
-          },
-          child: Text(
-            'Skip',
-            style: TextStyle(color: colorScheme.onSurfaceVariant),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-          onPressed: () {
-            final fare = int.tryParse(_fareController.text.trim()) ?? 10;
-            final feedback = _feedbackController.text.trim();
-            Navigator.of(context).pop();
-            widget.onSubmitted(fare, _rating, _safetyRating, _isStudentFare, feedback);
-          },
-          child: const Text(
-            'Submit & Finish',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
     );
   }
 }

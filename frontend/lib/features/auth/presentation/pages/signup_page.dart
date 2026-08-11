@@ -3,14 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
@@ -33,12 +37,8 @@ class SignupPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               Expanded(
-                child: Card(
-                  elevation: 4,
-                  shadowColor: Colors.black12,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-                  ),
+                child: GlassContainer(
+                  borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     child: SingleChildScrollView(
@@ -109,6 +109,7 @@ class SignupPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

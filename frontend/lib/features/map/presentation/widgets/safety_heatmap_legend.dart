@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 /// Small floating legend shown while the safety heatmap is active —
 /// mirrors the intensity-bar convention used by weather-radar apps.
@@ -18,19 +19,9 @@ class SafetyHeatmapLegend extends StatelessWidget {
 
     return Semantics(
       label: 'Safety heatmap legend, red is riskier, green is safer',
-      child: Container(
+      child: GlassContainer(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(12),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

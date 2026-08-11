@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class LocationSharedWithSection extends StatelessWidget {
   const LocationSharedWithSection({super.key});
@@ -12,12 +13,9 @@ class LocationSharedWithSection extends StatelessWidget {
       {'name': 'Mark Roberts', 'status': 'Live'},
     ];
 
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(24),
-      ),
+      borderRadius: BorderRadius.circular(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -36,11 +34,16 @@ class LocationSharedWithSection extends StatelessWidget {
           const SizedBox(height: 16),
           ...sharedBy.map((person) => Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              leading: CircleAvatar(child: Text(person['name']![0])),
+            child: GlassContainer(
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(12),
+            child: Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                tileColor: Colors.transparent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: CircleAvatar(child: Text(person['name']![0])),
               title: Text(person['name']!),
               subtitle: Text(person['status']!),
               trailing: const Icon(Icons.chevron_right, size: 20),
@@ -52,6 +55,8 @@ class LocationSharedWithSection extends StatelessWidget {
                 
                 context.go('/?lat=$mockLat&lon=$mockLon&name=${person['name']}');
               },
+            ),
+            ),
             ),
           )),
         ],

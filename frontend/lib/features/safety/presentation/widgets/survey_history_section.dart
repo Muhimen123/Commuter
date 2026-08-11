@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class SurveyHistorySection extends StatelessWidget {
   const SurveyHistorySection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+      borderRadius: BorderRadius.circular(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,11 +55,25 @@ class SurveyHistorySection extends StatelessWidget {
   void _showAllSurveys(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('All Safety Surveys'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.separated(
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(24),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'All Safety Surveys',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.separated(
             shrinkWrap: true,
             itemCount: 5, // Example count
             separatorBuilder: (context, index) => const Divider(height: 32),
@@ -73,13 +85,20 @@ class SurveyHistorySection extends StatelessWidget {
               index % 2 == 0,
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+                ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class LocationSharingWithSection extends StatefulWidget {
   const LocationSharingWithSection({super.key});
@@ -77,12 +78,9 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(24),
-      ),
+      borderRadius: BorderRadius.circular(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -123,10 +121,15 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
             const SizedBox(height: 16),
             ..._sharingWith.map((name) => Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                tileColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: GlassContainer(
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(12),
+                child: Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  tileColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: CircleAvatar(child: Text(name[0])),
                 title: Text(name),
                 subtitle: const Text('Active tracking'),
@@ -151,6 +154,8 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
                     );
                   },
                 ),
+                ),
+              ),
               ),
             )),
           ],

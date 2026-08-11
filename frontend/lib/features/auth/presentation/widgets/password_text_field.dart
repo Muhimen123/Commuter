@@ -42,6 +42,8 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
             hintStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: AppGlass.backgroundOpacity),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureText ? Icons.visibility_off : Icons.visibility,

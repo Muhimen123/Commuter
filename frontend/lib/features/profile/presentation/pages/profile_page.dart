@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -33,9 +34,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: FutureBuilder<ProfileEntity>(
           future: _profileFuture,
           builder: (context, snapshot) {
@@ -95,6 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           },
         ),
+      ),
       ),
     );
   }

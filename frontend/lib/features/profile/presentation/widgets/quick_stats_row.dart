@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class QuickStatsRow extends StatelessWidget {
   final QuickStats stats;
@@ -89,16 +90,8 @@ class _StatItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

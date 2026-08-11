@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
+import 'package:frontend/shared/widgets/glass_scaffold_background.dart';
 
 class RideHistoryPage extends StatefulWidget {
   const RideHistoryPage({super.key});
@@ -37,24 +39,23 @@ class _RideHistoryPageState extends State<RideHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ride History'),
-      ),
-      body: ListView.separated(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text('Ride History'),
+        ),
+        body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: rides.length,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final ride = rides[index];
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              ),
-            ),
+          return GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -103,6 +104,7 @@ class _RideHistoryPageState extends State<RideHistoryPage> {
             ),
           );
         },
+      ),
       ),
     );
   }

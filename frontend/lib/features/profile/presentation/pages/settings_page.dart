@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/theme/theme_notifier.dart';
+import '../../../../shared/widgets/glass_scaffold_background.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,12 +17,21 @@ class _SettingsPageState extends State<SettingsPage> {
   String _distanceMetric = 'Km'; // 'Km' or 'Miles'
 
   @override
+  void initState() {
+    super.initState();
+    _darkModeEnabled = themeNotifier.value == ThemeMode.dark;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Settings'),
+          backgroundColor: Colors.transparent,
+        ),
+        body: ListView(
         children: [
           _buildSectionHeader('Permissions'),
           SwitchListTile(
@@ -41,7 +52,10 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Dark Mode'),
             subtitle: const Text('Toggle app theme appearance'),
             value: _darkModeEnabled,
-            onChanged: (val) => setState(() => _darkModeEnabled = val),
+            onChanged: (val) {
+              setState(() => _darkModeEnabled = val);
+              themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+            },
           ),
           ListTile(
             title: const Text('Distance Metric'),
@@ -84,6 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () {},
           ),
         ],
+      ),
       ),
     );
   }

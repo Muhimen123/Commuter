@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final ProfileEntity profile;
@@ -14,16 +15,13 @@ class ProfileHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.lg,
         horizontal: AppSpacing.md,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-      ),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

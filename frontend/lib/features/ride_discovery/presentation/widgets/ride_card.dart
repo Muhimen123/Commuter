@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class RideCard extends StatelessWidget {
   final Ride ride;
@@ -13,13 +14,9 @@ class RideCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      elevation: 0,
-      color: colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(color: colorScheme.surfaceContainerHighest),
-      ),
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.lg),
         child: Column(
@@ -127,13 +124,9 @@ class _RecommendedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.tertiaryContainer.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: colorScheme.tertiaryContainer.withValues(alpha: 0.3)),
-      ),
+      borderRadius: BorderRadius.circular(AppRadius.full),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -162,15 +155,13 @@ class _SafetyScoreBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-      ),
-      alignment: Alignment.center,
-      child: Column(
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      child: SizedBox(
+        width: 64,
+        height: 64,
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.verified_user, size: 20, color: colorScheme.onPrimaryContainer),
@@ -183,6 +174,7 @@ class _SafetyScoreBox extends StatelessWidget {
                 ),
           ),
         ],
+      ),
       ),
     );
   }

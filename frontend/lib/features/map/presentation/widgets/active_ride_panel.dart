@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class ActiveRidePanel extends StatelessWidget {
   const ActiveRidePanel({
@@ -15,25 +16,12 @@ class ActiveRidePanel extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding + 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding + 16),
+      child: GlassContainer(
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
-      child: Column(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
@@ -105,6 +93,7 @@ class ActiveRidePanel extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

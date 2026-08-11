@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/shared/widgets/glass_container.dart';
 
 class SharingSection extends StatelessWidget {
   const SharingSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(24),
-      ),
+      borderRadius: BorderRadius.circular(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -59,13 +57,9 @@ class SharingSection extends StatelessWidget {
     String avatarUrl, {
     String? initials,
   }) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         children: [
           CircleAvatar(

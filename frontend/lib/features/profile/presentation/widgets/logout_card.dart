@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../shared/widgets/glass_container.dart';
 
 class LogoutCard extends StatelessWidget {
   final VoidCallback onLogout;
@@ -13,17 +14,13 @@ class LogoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Material(
-      color: const Color(0xFFF0F1F5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        side: BorderSide(
-          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-        ),
-      ),
-      child: InkWell(
-        onTap: onLogout,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onLogout,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -50,6 +47,7 @@ class LogoutCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
