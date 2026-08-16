@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 
@@ -98,45 +97,41 @@ class BusProfilePage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: FlutterMap(
-                      options: MapOptions(
-                        initialCenter: const LatLng(23.7770, 90.3860),
-                        initialZoom: 11.5,
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.none,
-                        ),
+                    child: GoogleMap(
+                      mapType: MapType.normal,
+                      initialCameraPosition: const CameraPosition(
+                        target: LatLng(23.7770, 90.3860),
+                        zoom: 11.5,
                       ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.commuter.frontend',
+                      zoomGesturesEnabled: false,
+                      scrollGesturesEnabled: false,
+                      rotateGesturesEnabled: false,
+                      tiltGesturesEnabled: false,
+                      myLocationEnabled: false,
+                      polylines: {
+                        Polyline(
+                          polylineId: const PolylineId('bus_route'),
+                          points: routePoints,
+                          width: 4,
+                          color: colorScheme.primary,
                         ),
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                              points: routePoints,
-                              strokeWidth: 4.0,
-                              color: colorScheme.primary,
-                            ),
-                          ],
+                      },
+                      markers: {
+                        Marker(
+                          markerId: const MarkerId('start'),
+                          position: routePoints.first,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueBlue,
+                          ),
                         ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: routePoints.first,
-                              width: 40,
-                              height: 40,
-                              child: Icon(Icons.location_on, color: colorScheme.primary, size: 32),
-                            ),
-                            Marker(
-                              point: routePoints.last,
-                              width: 40,
-                              height: 40,
-                              child: Icon(Icons.location_on, color: colorScheme.error, size: 32),
-                            ),
-                          ],
+                        Marker(
+                          markerId: const MarkerId('end'),
+                          position: routePoints.last,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueRed,
+                          ),
                         ),
-                      ],
+                      },
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),

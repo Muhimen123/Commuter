@@ -23,6 +23,19 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Google Maps API key — read from local.properties (gitignored).
+        // Add to local.properties: googleMapsApiKey=AIzaSy...
+        val mapsApiKey = run {
+            val propsFile = rootProject.file("local.properties")
+            if (propsFile.exists()) {
+                propsFile.readLines()
+                    .firstOrNull { it.startsWith("googleMapsApiKey=") }
+                    ?.substringAfter("=")
+                    ?.trim() ?: ""
+            } else ""
+        }
+        manifestPlaceholders["googleMapsApiKey"] = mapsApiKey
     }
 
     buildTypes {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_tokens.dart';
-import '../../data/photon_repository.dart';
+import '../../data/places_repository.dart';
 
 class MapSuggestionsList extends StatelessWidget {
   final List<LocationSuggestion> suggestions;

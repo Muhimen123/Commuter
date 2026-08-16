@@ -21,6 +21,11 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# --- Platform config (API keys, SDK paths) ---
+local.properties
+frontend/ios/Runner/GoogleMaps-Config.xcconfig
+frontend/.env
+
 # --- Frontend Specifics ---
 # Flutter/Dart/Pub related
 frontend/doc/api/

@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../domain/entities/safety_point.dart';
 
 const LatLng kDhakaSafetyCenter = LatLng(23.8103, 90.4125);

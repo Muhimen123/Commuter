@@ -1,4 +1,4 @@
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// A single community-reported (or backend-aggregated) safety data point
 /// used to render the safety heatmap layer on the map.
