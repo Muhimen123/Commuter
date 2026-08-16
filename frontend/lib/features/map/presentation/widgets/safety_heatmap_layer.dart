@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../domain/entities/safety_point.dart';
@@ -11,7 +12,17 @@ class SafetyHeatmapBuilder {
   SafetyHeatmapBuilder._(); // utility class
 
   static const _heatmapId = HeatmapId('safety_heatmap');
-  static const _radius = HeatmapRadius.fromPixels(60);
+
+  /// Platform-appropriate radius in pixels.
+  /// Android HeatmapTileProvider accepts only 10-50.
+  static HeatmapRadius _radiusForPlatform() {
+    if (kIsWeb) return const HeatmapRadius.fromPixels(10);
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => const HeatmapRadius.fromPixels(20),
+      TargetPlatform.iOS => const HeatmapRadius.fromPixels(40),
+      _ => const HeatmapRadius.fromPixels(20),
+    };
+  }
 
   /// Builds a heatmap set for Google Maps.
   ///
@@ -20,6 +31,7 @@ class SafetyHeatmapBuilder {
     required BuildContext context,
     required List<SafetyPoint> points,
   }) {
+    debugPrint('SafetyHeatmapBuilder: building with ${points.length} points');
     if (points.isEmpty) return {};
 
     final safety = Theme.of(context).extension<SafetyColors>();
@@ -56,13 +68,19 @@ class SafetyHeatmapBuilder {
       );
     }).toList();
 
+    debugPrint('SafetyHeatmapBuilder: created Heatmap with ${data.length} weighted points');
+    final minW = data.map((w) => w.weight).reduce((a, b) => a < b ? a : b);
+    final maxW = data.map((w) => w.weight).reduce((a, b) => a > b ? a : b);
+    debugPrint('SafetyHeatmapBuilder: weights range: [$minW .. $maxW]');
+
     return {
       Heatmap(
         heatmapId: _heatmapId,
         data: data,
         gradient: gradient,
+        maxIntensity: 1,
         opacity: 0.7,
-        radius: _radius,
+        radius: _radiusForPlatform(),
         dissipating: true,
       ),
     };
