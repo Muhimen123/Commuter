@@ -99,6 +99,7 @@ class BusProfilePage extends StatelessWidget {
                     ),
                     child: GoogleMap(
                       mapType: MapType.normal,
+                      buildingsEnabled: false,
                       initialCameraPosition: const CameraPosition(
                         target: LatLng(23.7770, 90.3860),
                         zoom: 11.5,

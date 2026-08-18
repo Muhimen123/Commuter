@@ -401,6 +401,7 @@ class _MapPageState extends State<MapPage> {
         children: [
           GoogleMap(
             mapType: MapType.normal,
+            buildingsEnabled: false,
             initialCameraPosition: CameraPosition(
               target: widget.initialLat != null
                   ? LatLng(widget.initialLat!, widget.initialLon!)
