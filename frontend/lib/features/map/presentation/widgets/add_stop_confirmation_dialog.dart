@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 
 class AddStopConfirmationDialog extends StatelessWidget {
