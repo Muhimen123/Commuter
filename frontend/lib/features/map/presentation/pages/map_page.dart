@@ -402,6 +402,7 @@ class _MapPageState extends State<MapPage> {
           GoogleMap(
             mapType: MapType.normal,
             buildingsEnabled: false,
+            zoomControlsEnabled: false,
             initialCameraPosition: CameraPosition(
               target: widget.initialLat != null
                   ? LatLng(widget.initialLat!, widget.initialLon!)
@@ -453,6 +454,38 @@ class _MapPageState extends State<MapPage> {
               suggestions: _suggestions,
               onSuggestionSelected: _selectSuggestion,
               isLoading: _isLoadingSuggestions,
+            ),
+          ),
+          Positioned(
+            bottom: safetyButtonBottom + 56,
+            left: 16,
+            child: InkWell(
+              onTap: _centerMapOnUser,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.surface.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.my_location_rounded,
+                  color: colorScheme.onSurface,
+                  size: 24,
+                ),
+              ),
             ),
           ),
           Positioned(
