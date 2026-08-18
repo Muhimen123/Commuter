@@ -13,60 +13,77 @@ class MockSafetyHeatmapRepository implements SafetyHeatmapRepository {
   Future<List<SafetyPoint>> getSafetyPoints({required LatLng center}) async {
     await Future.delayed(const Duration(milliseconds: 250));
 
-    final random = Random(7); 
+    final random = Random(7);
     final points = <SafetyPoint>[];
 
-    final phases = List.generate(4, (_) => random.nextDouble() * pi * 2);
-    const freqs = [0.0011, 0.0019, 0.0031, 0.0047]; 
-
-    double fieldNoise(double xMeters, double yMeters) {
-      var value = 0.0;
-      for (var i = 0; i < freqs.length; i++) {
-        value += sin(xMeters * freqs[i] + phases[i]) * cos(yMeters * freqs[i] * 1.3 + phases[i]);
+    // ── Perlin-like noise field for smooth score variation ──
+    double noise2D(double x, double y) {
+      // Simple layered noise using sin/cos with random phases
+      double value = 0.0;
+      double amp = 1.0;
+      double freq = 0.0008;
+      for (var i = 0; i < 4; i++) {
+        value += sin(x * freq) * cos(y * freq * 1.3 + 0.7 * i) * amp;
+        freq *= 2.1;
+        amp *= 0.5;
       }
-      return value / freqs.length; 
+      return value;
     }
 
-    const gridStepDeg = 0.0024;
-    const gridHalfExtent = 15; // Increased from 4 to cover ~8km across
-    for (var gx = -gridHalfExtent; gx <= gridHalfExtent; gx++) {
-      for (var gy = -gridHalfExtent; gy <= gridHalfExtent; gy++) {
-        final latOffset = gy * gridStepDeg;
-        final lngOffset = gx * gridStepDeg;
-        final xMeters = gx * 265.0;
-        final yMeters = gy * 265.0;
+    // ── Random scattered points (no grid) ──
+    // Spread over ~10km, with ~1800 random positions
+    const spreadDeg = 0.045; // ~5km in each direction
+    const pointCount = 1800;
+    for (var i = 0; i < pointCount; i++) {
+      final latOffset = (random.nextDouble() - 0.5) * spreadDeg * 2;
+      final lngOffset = (random.nextDouble() - 0.5) * spreadDeg * 2;
+      final xMeters = lngOffset * 111000 * cos(center.latitude * pi / 180);
+      final yMeters = latOffset * 111000;
 
-        final noise = fieldNoise(xMeters, yMeters); 
-        final jitter = (random.nextDouble() - 0.5) * 0.08;
-        final score = (((noise + 1) / 2) + jitter).clamp(0.0, 1.0);
+      final noise = noise2D(xMeters, yMeters);
+      final jitter = (random.nextDouble() - 0.5) * 0.12;
+      final score = (((noise + 1) / 2) + jitter).clamp(0.0, 1.0);
 
-        points.add(
-          SafetyPoint(
-            latitude: center.latitude + latOffset,
-            longitude: center.longitude + lngOffset,
-            score: score,
-            reportCount: 2 + random.nextInt(25),
-          ),
-        );
-      }
+      points.add(
+        SafetyPoint(
+          latitude: center.latitude + latOffset,
+          longitude: center.longitude + lngOffset,
+          score: score,
+          reportCount: 2 + random.nextInt(25),
+        ),
+      );
     }
 
-    final hotspots = <_MockCluster>[
-      _MockCluster(latOffset: 0.0075, lngOffset: -0.0060, baseScore: 0.92, spread: 0.0035, count: 8),
-      _MockCluster(latOffset: -0.0080, lngOffset: 0.0070, baseScore: 0.10, spread: 0.0030, count: 7),
-      _MockCluster(latOffset: 0.0040, lngOffset: 0.0090, baseScore: 0.85, spread: 0.0030, count: 5),
-      _MockCluster(latOffset: -0.0045, lngOffset: -0.0085, baseScore: 0.15, spread: 0.0030, count: 5),
-      _MockCluster(latOffset: 0.0150, lngOffset: 0.0200, baseScore: 0.05, spread: 0.0050, count: 10),
-      _MockCluster(latOffset: -0.0200, lngOffset: -0.0150, baseScore: 0.95, spread: 0.0060, count: 12),
-      _MockCluster(latOffset: 0.0250, lngOffset: -0.0250, baseScore: 0.20, spread: 0.0080, count: 15),
-      _MockCluster(latOffset: -0.0300, lngOffset: 0.0300, baseScore: 0.80, spread: 0.0080, count: 15),
+    // ── Hotspot clusters (dangerous areas) ──
+    final dangerClusters = <_Cluster>[
+      _Cluster(latOffset: 0.007, lngOffset: -0.005, baseScore: 0.08, spread: 0.006, count: 40),
+      _Cluster(latOffset: -0.009, lngOffset: 0.008, baseScore: 0.12, spread: 0.005, count: 30),
+      _Cluster(latOffset: 0.016, lngOffset: 0.022, baseScore: 0.05, spread: 0.008, count: 35),
+      _Cluster(latOffset: -0.025, lngOffset: -0.018, baseScore: 0.10, spread: 0.010, count: 45),
+      _Cluster(latOffset: 0.005, lngOffset: 0.012, baseScore: 0.15, spread: 0.007, count: 25),
+      _Cluster(latOffset: -0.012, lngOffset: -0.020, baseScore: 0.06, spread: 0.009, count: 30),
     ];
 
-    for (final cluster in hotspots) {
+    // ── Safe clusters ──
+    final safeClusters = <_Cluster>[
+      _Cluster(latOffset: 0.008, lngOffset: -0.015, baseScore: 0.92, spread: 0.005, count: 30),
+      _Cluster(latOffset: -0.005, lngOffset: 0.015, baseScore: 0.88, spread: 0.006, count: 25),
+      _Cluster(latOffset: 0.020, lngOffset: -0.020, baseScore: 0.95, spread: 0.009, count: 35),
+      _Cluster(latOffset: -0.022, lngOffset: 0.025, baseScore: 0.90, spread: 0.008, count: 30),
+      _Cluster(latOffset: -0.030, lngOffset: 0.008, baseScore: 0.85, spread: 0.010, count: 25),
+      _Cluster(latOffset: 0.030, lngOffset: -0.030, baseScore: 0.93, spread: 0.012, count: 40),
+    ];
+
+    for (final cluster in [...dangerClusters, ...safeClusters]) {
       for (var i = 0; i < cluster.count; i++) {
-        final lat = center.latitude + cluster.latOffset + (random.nextDouble() - 0.5) * cluster.spread;
-        final lng = center.longitude + cluster.lngOffset + (random.nextDouble() - 0.5) * cluster.spread;
-        final score = (cluster.baseScore + (random.nextDouble() - 0.5) * 0.08).clamp(0.0, 1.0);
+        final lat = center.latitude +
+            cluster.latOffset +
+            (random.nextDouble() - 0.5) * cluster.spread;
+        final lng = center.longitude +
+            cluster.lngOffset +
+            (random.nextDouble() - 0.5) * cluster.spread;
+        final score =
+            (cluster.baseScore + (random.nextDouble() - 0.5) * 0.12).clamp(0.0, 1.0);
         points.add(
           SafetyPoint(
             latitude: lat,
@@ -82,14 +99,14 @@ class MockSafetyHeatmapRepository implements SafetyHeatmapRepository {
   }
 }
 
-class _MockCluster {
+class _Cluster {
   final double latOffset;
   final double lngOffset;
   final double baseScore;
   final double spread;
   final int count;
 
-  const _MockCluster({
+  const _Cluster({
     required this.latOffset,
     required this.lngOffset,
     required this.baseScore,

@@ -13,15 +13,10 @@ class SafetyHeatmapBuilder {
 
   static const _heatmapId = HeatmapId('safety_heatmap');
 
-  /// Platform-appropriate radius in pixels.
-  /// Android HeatmapTileProvider accepts only 10-50.
+  /// Platform-appropriate radius in pixels (max 50 on both platforms).
   static HeatmapRadius _radiusForPlatform() {
     if (kIsWeb) return const HeatmapRadius.fromPixels(10);
-    return switch (defaultTargetPlatform) {
-      TargetPlatform.android => const HeatmapRadius.fromPixels(20),
-      TargetPlatform.iOS => const HeatmapRadius.fromPixels(40),
-      _ => const HeatmapRadius.fromPixels(20),
-    };
+    return const HeatmapRadius.fromPixels(50);
   }
 
   /// Builds a heatmap set for Google Maps.
@@ -52,12 +47,14 @@ class SafetyHeatmapBuilder {
     final vWarning = vivid(warning, satBoost: 0.25);
     final vSafe = vivid(safe, satBoost: 0.25, lightAdjust: -0.04);
 
-    // Gradient: low intensity (safe) → high intensity (danger).
-    // Colors listed low-to-high with their start points.
+    // Gradient: transparent → safe (green) → warning (amber) → danger (red).
+    // The first color is fully transparent so the heatmap fades out at the edges
+    // of the data extent instead of showing a hard square border.
     final gradient = HeatmapGradient([
-      HeatmapGradientColor(vSafe, 0.0),
-      HeatmapGradientColor(vWarning, 0.5),
-      HeatmapGradientColor(vDanger, 1.0),
+      HeatmapGradientColor(vSafe.withAlpha(0), 0.0),  // transparent edge fade
+      HeatmapGradientColor(vSafe, 0.3),               // safe → green
+      HeatmapGradientColor(vWarning, 0.6),             // warning → amber
+      HeatmapGradientColor(vDanger, 1.0),              // risky → red
     ]);
 
     // Weight = inverse of score: risky areas (score ~0) get high weight.
