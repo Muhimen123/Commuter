@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../data/directions_repository.dart';
 import '../../data/places_repository.dart';
@@ -447,6 +449,70 @@ class _MapPageState extends State<MapPage> {
               points: _heatmapEnabled ? _safetyPoints : const [],
             ),
           ),
+
+          // Shared-location viewing chip (close button to return to safety).
+          if (widget.sharedPersonName != null)
+            Positioned(
+              top: topPadding + 76,
+              left: 16,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Text(
+                          widget.sharedPersonName![0],
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Flexible(
+                        child: Text(
+                          'Viewing ${widget.sharedPersonName}\'s location',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            Icons.close_rounded,
+                            size: 18,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: () => context.go('/'),
+                          tooltip: 'Stop viewing',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // Safety heatmap loading indicator (overlay, not on map).
           if (_isLoadingSafetyPoints)
