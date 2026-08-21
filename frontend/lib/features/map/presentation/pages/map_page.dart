@@ -15,6 +15,9 @@ import '../widgets/ride_survey_dialog.dart';
 import '../widgets/safety_heatmap_layer.dart';
 import '../widgets/safety_heatmap_legend.dart';
 import '../widgets/start_journey_fab.dart';
+import '../widgets/bus_selection_dialog.dart';
+import '../widgets/shared_location_chip.dart';
+import '../widgets/my_location_button.dart';
 
 class MapPage extends StatefulWidget {
   final String title;
@@ -56,6 +59,7 @@ class _MapPageState extends State<MapPage> {
   // Camera tracking — needed because GoogleMapController doesn't expose center synchronously.
   LatLng _lastCameraCenter = const LatLng(23.8103, 90.4125);
   int _markerIdCounter = 0;
+  bool _isViewingSharedLocation = false;
 
   @override
   void initState() {
@@ -64,6 +68,7 @@ class _MapPageState extends State<MapPage> {
     if (widget.initialLat != null && widget.initialLon != null) {
       _lastCameraCenter = LatLng(widget.initialLat!, widget.initialLon!);
     }
+    _isViewingSharedLocation = widget.sharedPersonName != null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialLat != null && widget.initialLon != null) {
@@ -84,20 +89,28 @@ class _MapPageState extends State<MapPage> {
   @override
   void didUpdateWidget(MapPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialLat != oldWidget.initialLat ||
-        widget.initialLon != oldWidget.initialLon) {
-      if (widget.initialLat != null && widget.initialLon != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
-          if (widget.sharedPersonName != null && mounted) {
-            CommuterToast.show(
-              context,
-              message: 'Viewing ${widget.sharedPersonName}\'s live location',
-              icon: Icons.person_pin_circle_rounded,
-            );
-          }
-        });
-      }
+
+    final nameChanged = widget.sharedPersonName != oldWidget.sharedPersonName;
+    final coordsChanged = widget.initialLat != oldWidget.initialLat ||
+        widget.initialLon != oldWidget.initialLon;
+
+    if (nameChanged) {
+      setState(() {
+        _isViewingSharedLocation = widget.sharedPersonName != null;
+      });
+    }
+
+    if (coordsChanged && widget.initialLat != null && widget.initialLon != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+        if (widget.sharedPersonName != null && mounted) {
+          CommuterToast.show(
+            context,
+            message: 'Viewing ${widget.sharedPersonName}\'s live location',
+            icon: Icons.person_pin_circle_rounded,
+          );
+        }
+      });
     }
   }
 
@@ -268,10 +281,20 @@ class _MapPageState extends State<MapPage> {
       _showAddStopDialog();
       return;
     }
+
+    if (!mounted) return;
+    final selectedBus = await showDialog<String>(
+      context: context,
+      builder: (context) => const BusSelectionDialog(),
+    );
+
+    if (selectedBus == null || selectedBus.isEmpty) return;
+    if (!mounted) return;
+
     setState(() {
       _isStartingJourney = true;
     });
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       setState(() {
         _isStartingJourney = false;
@@ -279,7 +302,7 @@ class _MapPageState extends State<MapPage> {
       });
       CommuterToast.show(
         context,
-        message: 'Journey started! Live tracking active.',
+        message: 'Journey started on $selectedBus! Live tracking active.',
         icon: Icons.navigation_rounded,
       );
     }
@@ -321,20 +344,24 @@ class _MapPageState extends State<MapPage> {
 
   /// Builds the shared-location marker for a person's live location.
   Set<Marker> _buildSharedLocationMarker() {
-    if (widget.sharedPersonName == null ||
+    if (!_isViewingSharedLocation ||
         widget.initialLat == null ||
         widget.initialLon == null) {
       return const {};
     }
 
-    final id = _nextMarkerId('shared');
+    final markerId = MarkerId(_nextMarkerId('shared'));
 
     return {
       Marker(
-        markerId: MarkerId(id),
+        markerId: markerId,
         position: LatLng(widget.initialLat!, widget.initialLon!),
         infoWindow: InfoWindow(title: widget.sharedPersonName),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        consumeTapEvents: true,
+        onTap: () {
+          _controller?.showMarkerInfoWindow(markerId);
+        },
       ),
     };
   }
@@ -358,11 +385,17 @@ class _MapPageState extends State<MapPage> {
   Set<Marker> _buildRouteMarkers() {
     if (!_hasRoute || _routePoints.isEmpty) return const {};
 
+    const markerId = MarkerId('destination');
+
     return {
       Marker(
-        markerId: const MarkerId('destination'),
+        markerId: markerId,
         position: _routePoints.last,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        consumeTapEvents: true,
+        onTap: () {
+          _controller?.showMarkerInfoWindow(markerId);
+        },
       ),
     };
   }
@@ -426,6 +459,23 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
+          // Shared-location viewing chip (close button to return to safety).
+          if (_isViewingSharedLocation)
+            Positioned(
+              top: topPadding + 76,
+              left: 16,
+              right: 16,
+              child: SharedLocationChip(
+                personName: widget.sharedPersonName!,
+                onClose: () {
+                  setState(() {
+                    _isViewingSharedLocation = false;
+                  });
+                  _centerMapOnUser();
+                },
+              ),
+            ),
+
           // Safety heatmap loading indicator (overlay, not on map).
           if (_isLoadingSafetyPoints)
             Positioned(
@@ -456,37 +506,9 @@ class _MapPageState extends State<MapPage> {
               isLoading: _isLoadingSuggestions,
             ),
           ),
-          Positioned(
-            bottom: safetyButtonBottom + 56,
-            left: 16,
-            child: InkWell(
-              onTap: _centerMapOnUser,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant,
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.my_location_rounded,
-                  color: colorScheme.onSurface,
-                  size: 24,
-                ),
-              ),
-            ),
+          MyLocationButton(
+            onPressed: _centerMapOnUser,
+            bottom: safetyButtonBottom,
           ),
           Positioned(
             bottom: safetyButtonBottom,

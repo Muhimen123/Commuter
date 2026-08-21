@@ -2,6 +2,11 @@
 
 A new Flutter project.
 
+## New Command to Run the Project 
+``` 
+flutter run --dart-define-from-file=.env
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
