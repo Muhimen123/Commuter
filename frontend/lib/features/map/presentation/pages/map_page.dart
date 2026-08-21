@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../data/directions_repository.dart';
@@ -60,7 +59,7 @@ class _MapPageState extends State<MapPage> {
   // Camera tracking — needed because GoogleMapController doesn't expose center synchronously.
   LatLng _lastCameraCenter = const LatLng(23.8103, 90.4125);
   int _markerIdCounter = 0;
-
+  bool _isViewingSharedLocation = false;
 
   @override
   void initState() {
@@ -69,6 +68,7 @@ class _MapPageState extends State<MapPage> {
     if (widget.initialLat != null && widget.initialLon != null) {
       _lastCameraCenter = LatLng(widget.initialLat!, widget.initialLon!);
     }
+    _isViewingSharedLocation = widget.sharedPersonName != null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialLat != null && widget.initialLon != null) {
@@ -89,20 +89,28 @@ class _MapPageState extends State<MapPage> {
   @override
   void didUpdateWidget(MapPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialLat != oldWidget.initialLat ||
-        widget.initialLon != oldWidget.initialLon) {
-      if (widget.initialLat != null && widget.initialLon != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
-          if (widget.sharedPersonName != null && mounted) {
-            CommuterToast.show(
-              context,
-              message: 'Viewing ${widget.sharedPersonName}\'s live location',
-              icon: Icons.person_pin_circle_rounded,
-            );
-          }
-        });
-      }
+
+    final nameChanged = widget.sharedPersonName != oldWidget.sharedPersonName;
+    final coordsChanged = widget.initialLat != oldWidget.initialLat ||
+        widget.initialLon != oldWidget.initialLon;
+
+    if (nameChanged) {
+      setState(() {
+        _isViewingSharedLocation = widget.sharedPersonName != null;
+      });
+    }
+
+    if (coordsChanged && widget.initialLat != null && widget.initialLon != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+        if (widget.sharedPersonName != null && mounted) {
+          CommuterToast.show(
+            context,
+            message: 'Viewing ${widget.sharedPersonName}\'s live location',
+            icon: Icons.person_pin_circle_rounded,
+          );
+        }
+      });
     }
   }
 
@@ -336,7 +344,7 @@ class _MapPageState extends State<MapPage> {
 
   /// Builds the shared-location marker for a person's live location.
   Set<Marker> _buildSharedLocationMarker() {
-    if (widget.sharedPersonName == null ||
+    if (!_isViewingSharedLocation ||
         widget.initialLat == null ||
         widget.initialLon == null) {
       return const {};
@@ -452,14 +460,19 @@ class _MapPageState extends State<MapPage> {
           ),
 
           // Shared-location viewing chip (close button to return to safety).
-          if (widget.sharedPersonName != null)
+          if (_isViewingSharedLocation)
             Positioned(
               top: topPadding + 76,
               left: 16,
               right: 16,
               child: SharedLocationChip(
                 personName: widget.sharedPersonName!,
-                onClose: () => context.go('/safety'),
+                onClose: () {
+                  setState(() {
+                    _isViewingSharedLocation = false;
+                  });
+                  _centerMapOnUser();
+                },
               ),
             ),
 
