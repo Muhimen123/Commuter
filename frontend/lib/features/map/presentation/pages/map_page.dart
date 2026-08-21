@@ -15,6 +15,7 @@ import '../widgets/ride_survey_dialog.dart';
 import '../widgets/safety_heatmap_layer.dart';
 import '../widgets/safety_heatmap_legend.dart';
 import '../widgets/start_journey_fab.dart';
+import '../widgets/bus_selection_dialog.dart';
 
 class MapPage extends StatefulWidget {
   final String title;
@@ -268,10 +269,20 @@ class _MapPageState extends State<MapPage> {
       _showAddStopDialog();
       return;
     }
+
+    if (!mounted) return;
+    final selectedBus = await showDialog<String>(
+      context: context,
+      builder: (context) => const BusSelectionDialog(),
+    );
+
+    if (selectedBus == null || selectedBus.isEmpty) return;
+    if (!mounted) return;
+
     setState(() {
       _isStartingJourney = true;
     });
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       setState(() {
         _isStartingJourney = false;
@@ -279,7 +290,7 @@ class _MapPageState extends State<MapPage> {
       });
       CommuterToast.show(
         context,
-        message: 'Journey started! Live tracking active.',
+        message: 'Journey started on $selectedBus! Live tracking active.',
         icon: Icons.navigation_rounded,
       );
     }
