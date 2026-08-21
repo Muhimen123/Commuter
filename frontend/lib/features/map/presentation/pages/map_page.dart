@@ -58,6 +58,7 @@ class _MapPageState extends State<MapPage> {
   LatLng _lastCameraCenter = const LatLng(23.8103, 90.4125);
   int _markerIdCounter = 0;
 
+
   @override
   void initState() {
     super.initState();
@@ -338,14 +339,18 @@ class _MapPageState extends State<MapPage> {
       return const {};
     }
 
-    final id = _nextMarkerId('shared');
+    final markerId = MarkerId(_nextMarkerId('shared'));
 
     return {
       Marker(
-        markerId: MarkerId(id),
+        markerId: markerId,
         position: LatLng(widget.initialLat!, widget.initialLon!),
         infoWindow: InfoWindow(title: widget.sharedPersonName),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        consumeTapEvents: true,
+        onTap: () {
+          _controller?.showMarkerInfoWindow(markerId);
+        },
       ),
     };
   }
@@ -369,11 +374,17 @@ class _MapPageState extends State<MapPage> {
   Set<Marker> _buildRouteMarkers() {
     if (!_hasRoute || _routePoints.isEmpty) return const {};
 
+    const markerId = MarkerId('destination');
+
     return {
       Marker(
-        markerId: const MarkerId('destination'),
+        markerId: markerId,
         position: _routePoints.last,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        consumeTapEvents: true,
+        onTap: () {
+          _controller?.showMarkerInfoWindow(markerId);
+        },
       ),
     };
   }
