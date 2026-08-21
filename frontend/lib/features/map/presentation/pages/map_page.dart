@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../data/directions_repository.dart';
 import '../../data/places_repository.dart';
@@ -18,6 +17,8 @@ import '../widgets/safety_heatmap_layer.dart';
 import '../widgets/safety_heatmap_legend.dart';
 import '../widgets/start_journey_fab.dart';
 import '../widgets/bus_selection_dialog.dart';
+import '../widgets/shared_location_chip.dart';
+import '../widgets/my_location_button.dart';
 
 class MapPage extends StatefulWidget {
   final String title;
@@ -456,61 +457,9 @@ class _MapPageState extends State<MapPage> {
               top: topPadding + 76,
               left: 16,
               right: 16,
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Text(
-                          widget.sharedPersonName![0],
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Flexible(
-                        child: Text(
-                          'Viewing ${widget.sharedPersonName}\'s location',
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Spacer(),
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.close_rounded,
-                            size: 18,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          onPressed: () => context.go('/'),
-                          tooltip: 'Stop viewing',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              child: SharedLocationChip(
+                personName: widget.sharedPersonName!,
+                onClose: () => context.go('/safety'),
               ),
             ),
 
@@ -544,37 +493,9 @@ class _MapPageState extends State<MapPage> {
               isLoading: _isLoadingSuggestions,
             ),
           ),
-          Positioned(
-            bottom: safetyButtonBottom + 56,
-            left: 16,
-            child: InkWell(
-              onTap: _centerMapOnUser,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant,
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.my_location_rounded,
-                  color: colorScheme.onSurface,
-                  size: 24,
-                ),
-              ),
-            ),
+          MyLocationButton(
+            onPressed: _centerMapOnUser,
+            bottom: safetyButtonBottom,
           ),
           Positioned(
             bottom: safetyButtonBottom,
