@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/journey.dart';
@@ -5,6 +6,10 @@ import '../../domain/entities/journey_stop.dart';
 import '../../domain/repositories/journey_repository.dart';
 import '../models/journey_model.dart';
 import '../models/journey_stop_model.dart';
+
+final journeyRepositoryProvider = Provider<JourneyRepository>((ref) {
+  return SupabaseJourneyRepository();
+});
 
 class SupabaseJourneyRepository implements JourneyRepository {
   static const _journeysTable = 'journeys';
