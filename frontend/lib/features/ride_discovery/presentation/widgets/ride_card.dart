@@ -112,7 +112,7 @@ class RideCard extends StatelessWidget {
                     minimumSize: const Size(120, 40),
                     shape: const StadiumBorder(),
                   ),
-                  child: const Text('View Profile'),
+                  child: const Text('View details'),
                 ),
               ],
             ),

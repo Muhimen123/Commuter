@@ -38,6 +38,37 @@ class _LocationSharingWithSectionState extends State<LocationSharingWithSection>
                   ),
             ),
             const SizedBox(height: 16),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _sharingWith.clear();
+                  _sharingWith.addAll(_trustedContacts);
+                });
+                Navigator.pop(context);
+                CommuterToast.show(
+                  context,
+                  message: 'Sharing location with all trusted contacts',
+                  icon: Icons.share_location,
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.people_alt_outlined, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Share with all',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
