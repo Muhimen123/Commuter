@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../data/directions_repository.dart';
@@ -19,7 +21,7 @@ import '../widgets/bus_selection_dialog.dart';
 import '../widgets/shared_location_chip.dart';
 import '../widgets/my_location_button.dart';
 
-class MapPage extends StatefulWidget {
+class MapPage extends ConsumerStatefulWidget {
   final String title;
   final double? initialLat;
   final double? initialLon;
@@ -34,10 +36,10 @@ class MapPage extends StatefulWidget {
   });
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _controller;
   final TextEditingController _searchController = TextEditingController();
   final PlacesRepository _placesRepository = PlacesRepository();
@@ -48,9 +50,13 @@ class _MapPageState extends State<MapPage> {
   List<LocationSuggestion> _suggestions = [];
   bool _isLoadingSuggestions = false;
   bool _hasRoute = false;
-  bool _isStartingJourney = false;
-  bool _journeyStarted = false;
   List<LatLng> _routePoints = [];
+
+  // Drafted-route context captured for journey persistence.
+  LatLng? _routeOrigin;
+  LocationSuggestion? _selectedDestination;
+  String? _routePolyline;
+  double? _routeDistanceKm;
 
   bool _heatmapEnabled = false;
   bool _isLoadingSafetyPoints = false;
@@ -83,6 +89,7 @@ class _MapPageState extends State<MapPage> {
       } else {
         _centerMapOnUser();
       }
+      _resumeJourney();
     });
   }
 
@@ -149,6 +156,31 @@ class _MapPageState extends State<MapPage> {
     _lastCameraCenter = position.target;
   }
 
+  /// Resumes an in-progress journey from the backend and redraws its route.
+  Future<void> _resumeJourney() async {
+    final journey = await ref.read(journeyProvider.notifier).resume();
+    if (journey == null || !mounted) return;
+    if (journey.routePolyline == null) return;
+
+    final points =
+        DirectionsRepository.decodePolyline(journey.routePolyline!);
+    setState(() {
+      _hasRoute = true;
+      _routePoints = points;
+      _routeOrigin = LatLng(journey.originLatitude, journey.originLongitude);
+      _routePolyline = journey.routePolyline;
+      _routeDistanceKm = journey.distanceKm;
+      _selectedDestination = journey.hasDestination
+          ? LocationSuggestion(
+              name: journey.destinationName ?? 'Destination',
+              placeId: journey.destinationPlaceId,
+              lat: journey.destinationLatitude!,
+              lon: journey.destinationLongitude!,
+            )
+          : null;
+    });
+  }
+
   Future<void> _toggleHeatmap() async {
     final turningOn = !_heatmapEnabled;
     setState(() => _heatmapEnabled = turningOn);
@@ -207,22 +239,28 @@ class _MapPageState extends State<MapPage> {
       _isLoadingSuggestions = false;
     });
 
-    final dest = LatLng(suggestion.lat, suggestion.lon);
     final origin = _lastCameraCenter;
+    final dest = LatLng(suggestion.lat, suggestion.lon);
 
     setState(() {
       _hasRoute = true;
       _routePoints = [origin, dest];
+      _routeOrigin = origin;
+      _selectedDestination = suggestion;
+      _routePolyline = null;
+      _routeDistanceKm = null;
     });
 
     await _animateTo(dest, 15.0);
     if (!mounted) return;
     FocusScope.of(context).unfocus();
 
-    final points = await _directionsRepository.fetchRoute(origin, dest);
+    final result = await _directionsRepository.fetchRoute(origin, dest);
     if (mounted && _hasRoute) {
       setState(() {
-        _routePoints = points;
+        _routePoints = result.points;
+        _routePolyline = result.polyline;
+        _routeDistanceKm = result.distanceKm;
       });
     }
   }
@@ -241,6 +279,10 @@ class _MapPageState extends State<MapPage> {
     setState(() {
       _hasRoute = true;
       _routePoints = [center, dest];
+      _routeOrigin = center;
+      _selectedDestination = null;
+      _routePolyline = null;
+      _routeDistanceKm = null;
     });
 
     await _animateTo(
@@ -253,10 +295,12 @@ class _MapPageState extends State<MapPage> {
     if (!mounted) return;
     FocusScope.of(context).unfocus();
 
-    final points = await _directionsRepository.fetchRoute(center, dest);
+    final result = await _directionsRepository.fetchRoute(center, dest);
     if (mounted && _hasRoute) {
       setState(() {
-        _routePoints = points;
+        _routePoints = result.points;
+        _routePolyline = result.polyline;
+        _routeDistanceKm = result.distanceKm;
       });
     }
   }
@@ -266,18 +310,21 @@ class _MapPageState extends State<MapPage> {
     setState(() {
       _hasRoute = false;
       _routePoints = [];
+      _routeOrigin = null;
+      _selectedDestination = null;
+      _routePolyline = null;
+      _routeDistanceKm = null;
       _suggestions = [];
       _isLoadingSuggestions = false;
       _searchController.clear();
-      _isStartingJourney = false;
-      _journeyStarted = false;
     });
     _centerMapOnUser();
   }
 
   Future<void> _startJourney() async {
-    if (_isStartingJourney) return;
-    if (_journeyStarted) {
+    final notifier = ref.read(journeyProvider.notifier);
+    if (ref.read(journeyProvider).isStarting) return;
+    if (ref.read(journeyProvider).hasActiveJourney) {
       _showAddStopDialog();
       return;
     }
@@ -291,52 +338,91 @@ class _MapPageState extends State<MapPage> {
     if (selectedBus == null || selectedBus.isEmpty) return;
     if (!mounted) return;
 
-    setState(() {
-      _isStartingJourney = true;
-    });
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {
-        _isStartingJourney = false;
-        _journeyStarted = true;
-      });
+    final origin = _routeOrigin ?? _lastCameraCenter;
+    final dest = _selectedDestination;
+
+    await notifier.startJourney(
+      routeId: null, // routes table not yet populated
+      originLatitude: origin.latitude,
+      originLongitude: origin.longitude,
+      destinationName: dest?.name,
+      destinationPlaceId: dest?.placeId,
+      destinationLatitude: dest?.lat,
+      destinationLongitude: dest?.lon,
+      routePolyline: _routePolyline,
+      distanceKm: _routeDistanceKm,
+    );
+
+    if (!mounted) return;
+    final state = ref.read(journeyProvider);
+    if (state.hasActiveJourney) {
       CommuterToast.show(
         context,
         message: 'Journey started on $selectedBus! Live tracking active.',
         icon: Icons.navigation_rounded,
       );
+    } else if (state.error != null) {
+      CommuterToast.show(
+        context,
+        message: 'Failed to start journey. Please try again.',
+        icon: Icons.error_outline_rounded,
+      );
     }
-  }
-
-  void _endJourney() {
-    showDialog(
-      context: context,
-      builder: (context) => RideSurveyDialog(
-        onSubmitted: (fare, rating, safetyRating, isStudentFare, feedback) {
-          final studentTag = isStudentFare ? ' (Student)' : '';
-          CommuterToast.show(
-            context,
-            message: 'Journey ended. ৳$fare$studentTag | $rating★ | $safetyRating',
-            icon: Icons.check_circle_rounded,
-          );
-          _clearRoute();
-        },
-      ),
-    );
   }
 
   void _showAddStopDialog() {
     final center = _lastCameraCenter;
     showDialog(
       context: context,
-      builder: (context) => AddStopConfirmationDialog(
+      builder: (dialogContext) => AddStopConfirmationDialog(
         center: center,
-        onAddStop: () {
+        onAddStop: () async {
+          final stop = await ref.read(journeyProvider.notifier).addStop(
+                stopName: null,
+                latitude: center.latitude,
+                longitude: center.longitude,
+              );
+          if (!mounted) return;
+          if (stop != null) {
+            CommuterToast.show(
+              context,
+              message: 'Stop added to journey!',
+              icon: Icons.check_circle,
+            );
+          } else {
+            CommuterToast.show(
+              context,
+              message: 'Failed to add stop. Please try again.',
+              icon: Icons.error_outline_rounded,
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  /// Ends the journey. The post-ride survey dialog still shows, but the
+  /// survey payload is intentionally discarded — only the journey is marked
+  /// `completed` in the backend (survey persistence is out of scope).
+  void _endJourney() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => RideSurveyDialog(
+        onSubmitted: (fare, rating, safetyRating, isStudentFare, feedback) async {
+          final success =
+              await ref.read(journeyProvider.notifier).endJourney();
+          if (!mounted) return;
+          final studentTag = isStudentFare ? ' (Student)' : '';
           CommuterToast.show(
             context,
-            message: 'Stop added to journey!',
-            icon: Icons.check_circle,
+            message: success
+                ? 'Journey ended. ৳$fare$studentTag | $rating★ | $safetyRating'
+                : 'Failed to end journey. Please try again.',
+            icon: success
+                ? Icons.check_circle_rounded
+                : Icons.error_outline_rounded,
           );
+          if (success) _clearRoute();
         },
       ),
     );
@@ -417,16 +503,20 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final topPadding = MediaQuery.of(context).padding.top;
-    final safetyButtonBottom = _journeyStarted ? 150.0 : 32.0;
+
+    final journeyState = ref.watch(journeyProvider);
+    final journeyStarted = journeyState.hasActiveJourney;
+    final isStartingJourney = journeyState.isStarting;
+    final safetyButtonBottom = journeyStarted ? 150.0 : 32.0;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      floatingActionButton: _journeyStarted
+      floatingActionButton: journeyStarted
           ? null
           : StartJourneyFab(
               hasRoute: _hasRoute,
-              isStartingJourney: _isStartingJourney,
-              journeyStarted: _journeyStarted,
+              isStartingJourney: isStartingJourney,
+              journeyStarted: journeyStarted,
               onPressed: _startJourney,
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -535,7 +625,7 @@ class _MapPageState extends State<MapPage> {
               ),
             ),
           ),
-          if (_journeyStarted)
+          if (journeyStarted)
             Positioned(
               bottom: 0,
               left: 0,

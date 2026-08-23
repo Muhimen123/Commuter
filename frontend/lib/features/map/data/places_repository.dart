@@ -7,6 +7,7 @@ import 'api_config.dart';
 /// A location suggestion returned by the Google Places API.
 class LocationSuggestion {
   final String name;
+  final String? placeId;
   final String? street;
   final String? city;
   final String? state;
@@ -16,6 +17,7 @@ class LocationSuggestion {
 
   const LocationSuggestion({
     required this.name,
+    this.placeId,
     this.street,
     this.city,
     this.state,
@@ -164,6 +166,7 @@ class PlacesRepository {
 
       return LocationSuggestion(
         name: description.split(',').first.trim(),
+        placeId: placeId,
         street: street,
         city: city,
         state: state,

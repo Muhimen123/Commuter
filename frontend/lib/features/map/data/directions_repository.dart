@@ -4,6 +4,19 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 
+/// Result of a Google Directions API route request.
+class DirectionsResult {
+  final List<LatLng> points;
+  final String? polyline;
+  final double? distanceKm;
+
+  const DirectionsResult({
+    required this.points,
+    this.polyline,
+    this.distanceKm,
+  });
+}
+
 /// Google Directions API client.
 ///
 /// Fetches a driving route between two [LatLng] points and decodes the
@@ -15,14 +28,15 @@ class DirectionsRepository {
 
   /// Fetches a driving route from [start] to [end] via the Google Directions API.
   ///
-  /// Returns a list of [LatLng] points forming the route polyline.
-  /// Returns a straight line `[start, end]` as fallback if the request fails.
-  Future<List<LatLng>> fetchRoute(LatLng start, LatLng end) async {
+  /// Returns a [DirectionsResult] with the decoded polyline [points], the
+  /// encoded [polyline] string, and the route [distanceKm]. On failure,
+  /// returns a straight-line result with null polyline/distance.
+  Future<DirectionsResult> fetchRoute(LatLng start, LatLng end) async {
     try {
       final apiKey = googleMapsApiKey;
       if (apiKey.isEmpty) {
         debugPrint('DirectionsRepository: No Google Maps API key set');
-        return [start, end];
+        return DirectionsResult(points: [start, end]);
       }
 
       final url = Uri.parse(
@@ -46,11 +60,24 @@ class DirectionsRepository {
           final routes = data['routes'] as List<dynamic>? ?? [];
           if (routes.isNotEmpty) {
             final route = routes[0] as Map<String, dynamic>;
-            final overviewPolyline = route['overview_polyline'] as Map<String, dynamic>? ?? {};
+            final overviewPolyline =
+                route['overview_polyline'] as Map<String, dynamic>? ?? {};
             final encodedPoints = overviewPolyline['points'] as String? ?? '';
 
             if (encodedPoints.isNotEmpty) {
-              return _decodePolyline(encodedPoints);
+              final legs = route['legs'] as List<dynamic>? ?? [];
+              final distanceMeters = legs.isNotEmpty
+                  ? legs[0]['distance'] as Map<String, dynamic>?
+                  : null;
+              final distanceValue =
+                  (distanceMeters?['value'] as num?)?.toDouble();
+
+              return DirectionsResult(
+                points: decodePolyline(encodedPoints),
+                polyline: encodedPoints,
+                distanceKm:
+                    distanceValue == null ? null : distanceValue / 1000,
+              );
             }
           }
         } else {
@@ -61,15 +88,14 @@ class DirectionsRepository {
       debugPrint('DirectionsRepository error: $e');
     }
 
-    // Fallback to straight line if routing fails
-    return [start, end];
+    return DirectionsResult(points: [start, end]);
   }
 
   /// Decodes a Google-encoded polyline string into a [List<LatLng>].
   ///
   /// Implements the algorithm described at:
   /// https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-  List<LatLng> _decodePolyline(String encoded) {
+  static List<LatLng> decodePolyline(String encoded) {
     final points = <LatLng>[];
     int index = 0;
     final len = encoded.length;
