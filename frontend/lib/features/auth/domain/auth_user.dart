@@ -1,7 +1,3 @@
-/// Immutable entity representing an authenticated user.
-///
-/// Mirrors the `users` table from `supabase/schema.sql`, excluding
-/// `password_hash` — the client must never hold the hashed secret.
 class AuthUser {
   final String id;
   final String fullName;
@@ -51,6 +47,30 @@ class AuthUser {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'fullName': fullName,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'profilePhotoUrl': profilePhotoUrl,
+        'locationPermissionGranted': locationPermissionGranted,
+        'contactsPermissionGranted': contactsPermissionGranted,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
+
+  factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
+        id: json['id'] as String,
+        fullName: json['fullName'] as String,
+        email: json['email'] as String,
+        phoneNumber: json['phoneNumber'] as String,
+        profilePhotoUrl: json['profilePhotoUrl'] as String?,
+        locationPermissionGranted: json['locationPermissionGranted'] as bool,
+        contactsPermissionGranted: json['contactsPermissionGranted'] as bool,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+      );
 
   @override
   String toString() =>
