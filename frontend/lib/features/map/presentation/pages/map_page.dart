@@ -219,10 +219,10 @@ class _MapPageState extends State<MapPage> {
     if (!mounted) return;
     FocusScope.of(context).unfocus();
 
-    final points = await _directionsRepository.fetchRoute(origin, dest);
+    final result = await _directionsRepository.fetchRoute(origin, dest);
     if (mounted && _hasRoute) {
       setState(() {
-        _routePoints = points;
+        _routePoints = result.points;
       });
     }
   }
@@ -253,10 +253,10 @@ class _MapPageState extends State<MapPage> {
     if (!mounted) return;
     FocusScope.of(context).unfocus();
 
-    final points = await _directionsRepository.fetchRoute(center, dest);
+    final result = await _directionsRepository.fetchRoute(center, dest);
     if (mounted && _hasRoute) {
       setState(() {
-        _routePoints = points;
+        _routePoints = result.points;
       });
     }
   }
