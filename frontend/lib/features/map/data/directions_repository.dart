@@ -73,7 +73,7 @@ class DirectionsRepository {
                   (distanceMeters?['value'] as num?)?.toDouble();
 
               return DirectionsResult(
-                points: _decodePolyline(encodedPoints),
+                points: decodePolyline(encodedPoints),
                 polyline: encodedPoints,
                 distanceKm:
                     distanceValue == null ? null : distanceValue / 1000,
@@ -95,7 +95,7 @@ class DirectionsRepository {
   ///
   /// Implements the algorithm described at:
   /// https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-  List<LatLng> _decodePolyline(String encoded) {
+  static List<LatLng> decodePolyline(String encoded) {
     final points = <LatLng>[];
     int index = 0;
     final len = encoded.length;
