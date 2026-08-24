@@ -29,7 +29,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     super.dispose();
   }
 
-  void _handleSignUp() {
+  Future<void> _handleSignUp() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
@@ -71,37 +71,44 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       return;
     }
 
-    ref.read(authProvider.notifier).signUp(
-          fullName: name,
-          email: email,
-          phoneNumber: phone,
-          password: password,
-        );
-  }
+    try {
+      await ref.read(authProvider.notifier).signUp(
+            fullName: name,
+            email: email,
+            phoneNumber: phone,
+            password: password,
+          );
 
-  @override
-  Widget build(BuildContext context) {
-    // Navigate to home when sign-up succeeds.
-    ref.listen(authProvider, (prev, next) {
-      if (prev?.isLoading == true && next.hasValue && next.value != null) {
-        context.go('/');
-      } else if (prev?.isLoading == true && next.hasError) {
-        final error = next.error;
-        final message = error
+      final authState = ref.read(authProvider);
+      if (authState.hasError) {
+        throw authState.error!;
+      }
+
+      if (mounted) {
+        context.go('/check_email', extra: email);
+      }
+    } catch (e) {
+      if (mounted) {
+        final message = e
             .toString()
             .replaceAll('Exception: ', '')
             .replaceAll('AuthException(message: ', '')
             .replaceAll(')', '');
         CommuterToast.show(
           context,
-          message: message.isNotEmpty ? message : 'Sign up failed. Please try again.',
+          message: message.isNotEmpty
+              ? message
+              : 'Sign up failed. Please try again.',
           icon: Icons.error_outline,
           backgroundColor: Theme.of(context).colorScheme.errorContainer,
           foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
         );
       }
-    });
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
 
     return Scaffold(
@@ -211,9 +218,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   'Already have an account? Log in',
                   style: TextStyle(
                     color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.8),
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.8),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

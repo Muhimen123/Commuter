@@ -25,7 +25,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -47,30 +47,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       return;
     }
 
-    ref.read(authProvider.notifier).signIn(
-          email: email,
-          password: password,
-        );
-  }
+    try {
+      await ref.read(authProvider.notifier).signIn(
+            email: email,
+            password: password,
+          );
 
-  @override
-  Widget build(BuildContext context) {
-    ref.listen(authProvider, (prev, next) {
-      if (prev?.isLoading == true && next.hasValue && next.value != null) {
+      final authState = ref.read(authProvider);
+      if (authState.hasError) {
+        throw authState.error!;
+      }
+
+      if (mounted && authState.value != null) {
         context.go('/');
-      } else if (prev?.isLoading == true && next.hasError) {
-        final error = next.error;
-        final message = error.toString().replaceAll('Exception: ', '').replaceAll('AuthException(message: ', '').replaceAll(')', '');
+      }
+    } catch (e) {
+      if (mounted) {
+        final message = e
+            .toString()
+            .replaceAll('Exception: ', '')
+            .replaceAll('AuthException(message: ', '')
+            .replaceAll(')', '');
         CommuterToast.show(
           context,
-          message: message.isNotEmpty ? message : 'Login failed. Please check your credentials.',
+          message: message.isNotEmpty
+              ? message
+              : 'Login failed. Please check your credentials.',
           icon: Icons.error_outline,
           backgroundColor: Theme.of(context).colorScheme.errorContainer,
           foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
         );
       }
-    });
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
 
     return Scaffold(

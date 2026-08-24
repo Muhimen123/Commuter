@@ -72,14 +72,14 @@ class SupabaseAuthRepository implements AuthRepository {
       updatedAt: now,
     );
 
-    // Ensure user record exists in public.users and user_settings before recording session
+    // Ensure user record exists in public.users and user_settings before login
     await _ensureUserInDb(user);
 
-    // Register active device session in auth_sessions table
-    final sessionToken = response.session?.refreshToken ??
-        'session_${authUser.id}_${DateTime.now().millisecondsSinceEpoch}';
-    await _recordDeviceSession(user.id, sessionToken);
-    await _persist(user, sessionToken);
+    // Ensure user must log in through the login page by signing out any auto-session
+    try {
+      await _client.auth.signOut();
+    } catch (_) {}
+    await _clearLocalStorage();
 
     return user;
   }
