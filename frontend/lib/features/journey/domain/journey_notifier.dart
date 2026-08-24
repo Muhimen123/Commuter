@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import 'package:geolocator/geolocator.dart';
@@ -83,7 +84,8 @@ class JourneyNotifier extends Notifier<JourneyState> {
       state = state.copyWith(activeJourney: journey, isStarting: false);
       _startPingTimer();
       return journey;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('startJourney failed: $e\n$st');
       state = state.copyWith(isStarting: false, error: e.toString());
       return null;
     }
