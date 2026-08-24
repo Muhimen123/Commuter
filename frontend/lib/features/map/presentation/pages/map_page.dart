@@ -20,6 +20,8 @@ import '../widgets/start_journey_fab.dart';
 import '../widgets/bus_selection_dialog.dart';
 import '../widgets/shared_location_chip.dart';
 import '../widgets/my_location_button.dart';
+import '../../safety/domain/sharing_notifier.dart';
+import '../../safety/domain/entities/shared_location.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   final String title;
@@ -428,28 +430,54 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
-  /// Builds the shared-location marker for a person's live location.
-  Set<Marker> _buildSharedLocationMarker() {
-    if (!_isViewingSharedLocation ||
-        widget.initialLat == null ||
-        widget.initialLon == null) {
-      return const {};
+  /// Builds the shared-location markers for people sharing with the user.
+  Set<Marker> _buildSharedLocationMarkers() {
+    final sharingState = ref.watch(sharingProvider);
+    final sharedWithMe = sharingState.sharedWithMe;
+    
+    final markers = <Marker>{};
+
+    // 1. Add markers from the live "Shared With Me" list
+    for (final loc in sharedWithMe) {
+      if (loc.latitude != null && loc.longitude != null) {
+        final markerId = MarkerId('live_${loc.sharerId}');
+        markers.add(
+          Marker(
+            markerId: markerId,
+            position: LatLng(loc.latitude!, loc.longitude!),
+            infoWindow: InfoWindow(
+              title: loc.sharerName,
+              snippet: loc.lastPingAt != null ? 'Live tracking active' : 'Offline',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+            onTap: () => _controller?.showMarkerInfoWindow(markerId),
+          ),
+        );
+      }
     }
 
-    final markerId = MarkerId(_nextMarkerId('shared'));
+    // 2. Add marker from deep-link/parameters if not already in the live list
+    if (_isViewingSharedLocation &&
+        widget.initialLat != null &&
+        widget.initialLon != null) {
+      
+      final deepLinkSharerExists = sharedWithMe.any((s) => s.sharerName == widget.sharedPersonName);
+      
+      if (!deepLinkSharerExists) {
+        final markerId = const MarkerId('param_shared');
+        markers.add(
+          Marker(
+            markerId: markerId,
+            position: LatLng(widget.initialLat!, widget.initialLon!),
+            infoWindow: InfoWindow(title: widget.sharedPersonName),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+            onTap: () => _controller?.showMarkerInfoWindow(markerId),
+          ),
+        );
+      }
+    }
 
-    return {
-      Marker(
-        markerId: markerId,
-        position: LatLng(widget.initialLat!, widget.initialLon!),
-        infoWindow: InfoWindow(title: widget.sharedPersonName),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        consumeTapEvents: true,
-        onTap: () {
-          _controller?.showMarkerInfoWindow(markerId);
-        },
-      ),
-    };
+    return markers;
   }
 
   /// Builds the route polyline and destination marker.
@@ -539,7 +567,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             markers: {
-              ..._buildSharedLocationMarker(),
+              ..._buildSharedLocationMarkers(),
               ..._buildRouteMarkers(),
             },
             polylines: _buildRoutePolylines(),
