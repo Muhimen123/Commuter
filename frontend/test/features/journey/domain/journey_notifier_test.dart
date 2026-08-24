@@ -4,6 +4,7 @@ import 'package:frontend/features/journey/data/repositories/supabase_journey_rep
 import 'package:frontend/features/journey/domain/entities/journey.dart';
 import 'package:frontend/features/journey/domain/entities/journey_status.dart';
 import 'package:frontend/features/journey/domain/entities/journey_stop.dart';
+import 'package:frontend/features/journey/domain/entities/post_ride_survey.dart';
 import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:frontend/features/journey/domain/repositories/journey_repository.dart';
 
@@ -43,6 +44,18 @@ JourneyStop _stop({String id = 'stop-1', int sequenceOrder = 1}) {
   );
 }
 
+PostRideSurvey _survey({String journeyId = 'journey-1'}) {
+  return PostRideSurvey(
+    journeyId: journeyId,
+    farePaid: 25.0,
+    fareType: 'regular',
+    rideRating: 4.0,
+    safetyRating: 5.0,
+    feedbackText: 'Smooth ride',
+    createdAt: DateTime.utc(2025, 1, 1, 11),
+  );
+}
+
 class _FakeJourneyRepository implements JourneyRepository {
   Journey? startReturn;
   Object? startError;
@@ -55,6 +68,8 @@ class _FakeJourneyRepository implements JourneyRepository {
   Journey? activeJourneyReturn;
   Object? activeJourneyError;
   List<JourneyStop> getStopsReturn = const [];
+  PostRideSurvey? surveyReturn;
+  Object? surveyError;
 
   final List<Map<String, dynamic>> startCalls = [];
   final List<({String journeyId, String? stopName, double lat, double lon})>
@@ -62,6 +77,7 @@ class _FakeJourneyRepository implements JourneyRepository {
   final List<({String journeyId, double lat, double lon})> pingCalls = [];
   final List<String> finishCalls = [];
   final List<String> cancelCalls = [];
+  final List<Map<String, dynamic>> surveyCalls = [];
 
   @override
   Future<Journey> startJourney({
@@ -133,6 +149,27 @@ class _FakeJourneyRepository implements JourneyRepository {
     cancelCalls.add(journeyId);
     if (cancelError != null) throw cancelError!;
     return cancelReturn ?? _journey(id: journeyId, status: JourneyStatus.cancelled);
+  }
+
+  @override
+  Future<PostRideSurvey> submitSurvey({
+    required String journeyId,
+    double? farePaid,
+    String fareType = 'regular',
+    double? rideRating,
+    double? safetyRating,
+    String? feedbackText,
+  }) async {
+    surveyCalls.add({
+      'journeyId': journeyId,
+      'farePaid': farePaid,
+      'fareType': fareType,
+      'rideRating': rideRating,
+      'safetyRating': safetyRating,
+      'feedbackText': feedbackText,
+    });
+    if (surveyError != null) throw surveyError!;
+    return surveyReturn ?? _survey(journeyId: journeyId);
   }
 
   @override
@@ -330,6 +367,122 @@ void main() {
         expect(state.isEnding, isFalse);
         expect(state.hasActiveJourney, isTrue);
         expect(state.error, isNotNull);
+      });
+    });
+
+    group('submitSurvey', () {
+      test('returns false when there is no active journey', () async {
+        final success = await notifier.submitSurvey(
+          fare: 25,
+          rating: 4,
+          safetyRating: 'Safe & Professional',
+          isStudentFare: true,
+          feedback: 'Smooth ride',
+        );
+
+        expect(success, isFalse);
+        expect(repo.surveyCalls, isEmpty);
+      });
+
+      test('persists the survey with mapped fare, rating and fare type',
+          () async {
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+        );
+
+        final success = await notifier.submitSurvey(
+          fare: 25,
+          rating: 4,
+          safetyRating: 'Safe & Professional',
+          isStudentFare: true,
+          feedback: 'Smooth ride',
+        );
+
+        expect(success, isTrue);
+        expect(repo.surveyCalls, hasLength(1));
+        final call = repo.surveyCalls.last;
+        expect(call['journeyId'], 'journey-1');
+        expect(call['farePaid'], 25.0);
+        expect(call['fareType'], 'student');
+        expect(call['rideRating'], 4.0);
+        expect(call['safetyRating'], 5.0);
+        expect(call['feedbackText'], 'Smooth ride');
+      });
+
+      test('maps each safety string to its numeric rating', () async {
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+        );
+
+        const cases = <(String, double)>[
+          ('Safe & Professional', 5.0),
+          ('Neutral', 3.0),
+          ('Reckless / Unsafe', 1.0),
+        ];
+
+        for (final (label, expected) in cases) {
+          await notifier.submitSurvey(
+            fare: 10,
+            rating: 3,
+            safetyRating: label,
+            isStudentFare: false,
+            feedback: '',
+          );
+
+          expect(
+            repo.surveyCalls.last['safetyRating'],
+            expected,
+            reason: 'safety string "$label" should map to $expected',
+          );
+        }
+      });
+
+      test('keeps the journey active and clears isSubmittingSurvey on success',
+          () async {
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+        );
+
+        final future = notifier.submitSurvey(
+          fare: 25,
+          rating: 4,
+          safetyRating: 'Neutral',
+          isStudentFare: false,
+          feedback: 'OK',
+        );
+        expect(container.read(journeyProvider).isSubmittingSurvey, isTrue);
+
+        await future;
+
+        final state = container.read(journeyProvider);
+        expect(state.isSubmittingSurvey, isFalse);
+        expect(state.hasActiveJourney, isTrue);
+      });
+
+      test('returns false and sets error on failure', () async {
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+        );
+        repo.surveyError = Exception('insert failed');
+
+        final success = await notifier.submitSurvey(
+          fare: 25,
+          rating: 4,
+          safetyRating: 'Safe & Professional',
+          isStudentFare: false,
+          feedback: 'Smooth ride',
+        );
+
+        expect(success, isFalse);
+        expect(repo.surveyCalls, hasLength(1));
+        final state = container.read(journeyProvider);
+        expect(state.isSubmittingSurvey, isFalse);
+        expect(state.error, isNotNull);
+        expect(state.hasActiveJourney, isTrue);
       });
     });
 

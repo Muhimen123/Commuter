@@ -1,8 +1,8 @@
 -- =====================================================================
 -- COMMUTER APP — JOURNEY BACKEND (RLS + grants + RPC functions)
 --
--- Additive to schema.sql. Applies ONLY to the journey tables:
---   journeys, journey_stops, journey_location_pings
+-- Additive to schema.sql. Covers the journey tables:
+--   journeys, journey_stops, journey_location_pings, post_ride_surveys
 --
 -- AUTH STATUS: client auth is mocked (no real Supabase Auth session yet).
 -- RLS here is intentionally PERMISSIVE so the dev user id
@@ -10,6 +10,10 @@
 -- via the anon key. When real Supabase Auth lands, replace the *_dev_all
 -- policies with auth-uid-scoped ones (see TODO blocks below) and revisit
 -- whether these RPCs should become SECURITY DEFINER with ownership checks.
+--
+-- NOTE: post_ride_surveys setup lives in the MIGRATION section at the
+-- very bottom of this file. If you already ran an earlier version of
+-- this file (before post_ride_surveys existed), run ONLY that section.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -17,7 +21,7 @@
 -- ---------------------------------------------------------------------
 ALTER TABLE journeys                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journey_stops           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE journey_location_pings   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE journey_location_pings  ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
 -- Table-level grants to anon + authenticated roles
@@ -52,7 +56,7 @@ GRANT USAGE, SELECT ON journey_location_pings_id_seq TO anon, authenticated;
 --     WITH CHECK (EXISTS (SELECT 1 FROM journeys j
 --                         WHERE j.id = journey_stops.journey_id
 --                           AND j.user_id = auth.uid()));
---   -- (analogous for journey_location_pings)
+--   -- (analogous for journey_location_pings and post_ride_surveys)
 -- ---------------------------------------------------------------------
 CREATE POLICY journeys_dev_all ON journeys
   FOR ALL USING (true) WITH CHECK (true);
@@ -135,3 +139,32 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION finish_journey(UUID) TO anon, authenticated;
+
+-- #####################################################################
+-- #####################################################################
+-- ##                                                                 ##
+-- ##   RUN ONLY THE SECTION BELOW IF YOU ALREADY APPLIED AN EARLIER  ##
+-- ##   VERSION OF THIS FILE (before post_ride_surveys support).      ##
+-- ##                                                                 ##
+-- ##   It is also safe on a fresh install — the whole file may be    ##
+-- ##   run top-to-bottom. Every statement here is idempotent, so     ##
+-- ##   re-running this section alone is safe.                        ##
+-- ##                                                                 ##
+-- #####################################################################
+-- #####################################################################
+
+-- =====================================================================
+-- MIGRATION: post_ride_surveys (post-ride survey persistence)
+--
+-- Enables RLS, grants table privileges, and creates the permissive dev
+-- policy for the post_ride_surveys table so the client can insert
+-- survey rows keyed by journey_id.
+-- =====================================================================
+
+ALTER TABLE post_ride_surveys ENABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON post_ride_surveys TO anon, authenticated;
+
+DROP POLICY IF EXISTS post_ride_surveys_dev_all ON post_ride_surveys;
+CREATE POLICY post_ride_surveys_dev_all ON post_ride_surveys
+  FOR ALL USING (true) WITH CHECK (true);

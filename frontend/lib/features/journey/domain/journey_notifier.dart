@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import 'package:geolocator/geolocator.dart';
@@ -83,7 +84,8 @@ class JourneyNotifier extends Notifier<JourneyState> {
       state = state.copyWith(activeJourney: journey, isStarting: false);
       _startPingTimer();
       return journey;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('startJourney failed: $e\n$st');
       state = state.copyWith(isStarting: false, error: e.toString());
       return null;
     }
@@ -141,6 +143,42 @@ class JourneyNotifier extends Notifier<JourneyState> {
       state = state.copyWith(isCancelling: false, error: e.toString());
       return false;
     }
+  }
+
+  Future<bool> submitSurvey({
+    required int fare,
+    required int rating,
+    required String safetyRating,
+    required bool isStudentFare,
+    required String feedback,
+  }) async {
+    final journeyId = state.activeJourney?.id;
+    if (journeyId == null) return false;
+    state = state.copyWith(isSubmittingSurvey: true, clearError: true);
+    try {
+      await _repository.submitSurvey(
+        journeyId: journeyId,
+        farePaid: fare.toDouble(),
+        fareType: isStudentFare ? 'student' : 'regular',
+        rideRating: rating.toDouble(),
+        safetyRating: _safetyStringToRating(safetyRating),
+        feedbackText: feedback,
+      );
+      state = state.copyWith(isSubmittingSurvey: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isSubmittingSurvey: false, error: e.toString());
+      return false;
+    }
+  }
+
+  double _safetyStringToRating(String value) {
+    return switch (value) {
+      'Safe & Professional' => 5.0,
+      'Neutral' => 3.0,
+      'Reckless / Unsafe' => 1.0,
+      _ => 3.0,
+    };
   }
 
   void clearError() => state = state.copyWith(clearError: true);

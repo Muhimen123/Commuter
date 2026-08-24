@@ -3,9 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/journey.dart';
 import '../../domain/entities/journey_stop.dart';
+import '../../domain/entities/post_ride_survey.dart';
 import '../../domain/repositories/journey_repository.dart';
 import '../models/journey_model.dart';
 import '../models/journey_stop_model.dart';
+import '../models/post_ride_survey_model.dart';
 
 final journeyRepositoryProvider = Provider<JourneyRepository>((ref) {
   return SupabaseJourneyRepository();
@@ -15,6 +17,7 @@ class SupabaseJourneyRepository implements JourneyRepository {
   static const _journeysTable = 'journeys';
   static const _stopsTable = 'journey_stops';
   static const _pingsTable = 'journey_location_pings';
+  static const _surveysTable = 'post_ride_surveys';
 
   final SupabaseClient _client;
 
@@ -99,6 +102,33 @@ class SupabaseJourneyRepository implements JourneyRepository {
     });
 
     return JourneyModel.fromJson(row as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PostRideSurvey> submitSurvey({
+    required String journeyId,
+    double? farePaid,
+    String fareType = 'regular',
+    double? rideRating,
+    double? safetyRating,
+    String? feedbackText,
+  }) async {
+    final payload = <String, dynamic>{
+      'journey_id': journeyId,
+      'fare_paid': farePaid,
+      'fare_type': fareType,
+      'ride_rating': rideRating,
+      'safety_rating': safetyRating,
+      'feedback_text': feedbackText,
+    };
+
+    final row = await _client
+        .from(_surveysTable)
+        .insert(payload)
+        .select()
+        .single();
+
+    return PostRideSurveyModel.fromJson(row);
   }
 
   @override

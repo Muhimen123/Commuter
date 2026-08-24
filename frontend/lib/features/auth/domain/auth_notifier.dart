@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/auth/data/repositories/supabase_auth_repository.dart';
 import 'package:frontend/features/auth/domain/auth_user.dart';
