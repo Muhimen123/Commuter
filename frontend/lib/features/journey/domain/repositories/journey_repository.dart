@@ -1,5 +1,6 @@
 import '../entities/journey.dart';
 import '../entities/journey_stop.dart';
+import '../entities/post_ride_survey.dart';
 
 abstract class JourneyRepository {
   Future<Journey> startJourney({
@@ -34,6 +35,15 @@ abstract class JourneyRepository {
   Future<Journey> finishJourney({required String journeyId});
 
   Future<Journey> cancelJourney({required String journeyId});
+
+  Future<PostRideSurvey> submitSurvey({
+    required String journeyId,
+    double? farePaid,
+    String fareType = 'regular',
+    double? rideRating,
+    double? safetyRating,
+    String? feedbackText,
+  });
 
   Future<Journey?> getActiveJourney({required String userId});
 

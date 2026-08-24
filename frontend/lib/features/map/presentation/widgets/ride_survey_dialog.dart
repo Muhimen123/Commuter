@@ -4,9 +4,11 @@ class RideSurveyDialog extends StatefulWidget {
   const RideSurveyDialog({
     super.key,
     required this.onSubmitted,
+    this.onSkip,
   });
 
   final void Function(int fare, int rating, String safetyRating, bool isStudentFare, String feedback) onSubmitted;
+  final VoidCallback? onSkip;
 
   @override
   State<RideSurveyDialog> createState() => _RideSurveyDialogState();
@@ -102,7 +104,7 @@ class _RideSurveyDialogState extends State<RideSurveyDialog> {
         TextButton(
           onPressed: () {
             Navigator.of(context).pop();
-            widget.onSubmitted(0, 5, 'Safe & Professional', false, 'Skipped survey');
+            widget.onSkip?.call();
           },
           child: Text(
             'Skip',

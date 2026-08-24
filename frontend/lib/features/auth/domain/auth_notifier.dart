@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:frontend/features/auth/domain/auth_user.dart';
@@ -16,6 +17,10 @@ final authProvider =
 
 /// Key used to store the serialised [AuthUser] in secure storage.
 const _kUserKey = 'auth_user';
+
+final _uuidRegExp = RegExp(
+  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+);
 
 class AuthNotifier extends AsyncNotifier<AuthUser?> {
   @override
@@ -37,12 +42,16 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
       final stored = await storage.read(key: _kUserKey);
 
       if (stored != null && stored.isNotEmpty) {
-      final user = AuthUser.fromJson(jsonDecode(stored) as Map<String, dynamic>);
-      state = AsyncData(user);
+        final user = AuthUser.fromJson(jsonDecode(stored) as Map<String, dynamic>);
+        if (!_uuidRegExp.hasMatch(user.id)) {
+          debugPrint('Discarding persisted session: invalid user id "${user.id}"');
+          await storage.delete(key: _kUserKey);
+          state = const AsyncData(null);
+          return;
+        }
+        state = AsyncData(user);
       }
     } catch (_) {
-      // Silently ignore — no saved session is the same as signed-out.
-      // A corrupt value simply means the user signs in again.
       state = const AsyncData(null);
     }
   }
@@ -71,7 +80,7 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
     final now = DateTime.now();
 
     final user = AuthUser(
-      id: '00000000-0000-0000-0000-0000-000000000001',
+      id: '00000000-0000-0000-0000-000000000001',
       fullName: fullName,
       email: email,
       phoneNumber: phoneNumber,
