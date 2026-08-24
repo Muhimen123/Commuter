@@ -25,8 +25,24 @@ class SafetyActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        const Expanded(
-          child: _SOSButton(),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const _SOSModal(),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              fixedSize: const Size.fromHeight(52),
+            ),
+            child: const Text('SOS'),
+          ),
         ),
       ],
     );
@@ -55,14 +71,14 @@ class SafetyActionButtons extends StatelessWidget {
   }
 }
 
-class _SOSButton extends StatefulWidget {
-  const _SOSButton();
+class _SOSModal extends StatefulWidget {
+  const _SOSModal();
 
   @override
-  State<_SOSButton> createState() => _SOSButtonState();
+  State<_SOSModal> createState() => _SOSModalState();
 }
 
-class _SOSButtonState extends State<_SOSButton> {
+class _SOSModalState extends State<_SOSModal> {
   double _progress = 0.0;
   Timer? _timer;
   bool _isTriggered = false;
@@ -70,7 +86,7 @@ class _SOSButtonState extends State<_SOSButton> {
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       setState(() {
-        _progress += 0.05 / 2.0; // 2 seconds total now
+        _progress += 0.05 / 2.0; // 2 seconds total
         if (_progress >= 1.0) {
           _progress = 1.0;
           timer.cancel();
@@ -90,14 +106,12 @@ class _SOSButtonState extends State<_SOSButton> {
   void _triggerSOS() {
     if (_isTriggered) return;
     _isTriggered = true;
+    Navigator.of(context).pop();
     CommuterToast.show(
       context,
       message: 'Emergency Alert Sent to Trusted Contacts!',
       icon: Icons.emergency_share_rounded,
     );
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _isTriggered = false);
-    });
   }
 
   @override
@@ -108,44 +122,53 @@ class _SOSButtonState extends State<_SOSButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _startTimer(),
-      onTapUp: (_) => _stopTimer(),
-      onTapCancel: () => _stopTimer(),
-      child: SizedBox(
-        height: 52,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.danger,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Center(
-                child: Text(
-                  'SOS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+    return AlertDialog(
+      title: const Text('SOS'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Hold the SOS button to send notification'),
+          const SizedBox(height: 20),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: GestureDetector(
+              onTapDown: (_) => _startTimer(),
+              onTapUp: (_) => _stopTimer(),
+              onTapCancel: () => _stopTimer(),
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.danger,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Text(
+                      'SOS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
+                    if (_progress > 0)
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: LinearProgressIndicator(
+                            value: _progress,
+                            backgroundColor: Colors.transparent,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white38),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-            if (_progress > 0)
-              Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: LinearProgressIndicator(
-                    value: _progress,
-                    backgroundColor: Colors.transparent,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white38),
-                  ),
-                ),
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
