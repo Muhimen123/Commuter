@@ -1,23 +1,99 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import 'package:frontend/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty) {
+      CommuterToast.show(
+        context,
+        message: 'Please enter your email address.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      CommuterToast.show(
+        context,
+        message: 'Please enter your password.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    try {
+      await ref.read(authProvider.notifier).signIn(
+            email: email,
+            password: password,
+          );
+
+      final authState = ref.read(authProvider);
+      if (authState.hasError) {
+        throw authState.error!;
+      }
+
+      if (mounted && authState.value != null) {
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        final message = e
+            .toString()
+            .replaceAll('Exception: ', '')
+            .replaceAll('AuthException(message: ', '')
+            .replaceAll(')', '');
+        CommuterToast.show(
+          context,
+          message: message.isNotEmpty
+              ? message
+              : 'Login failed. Please check your credentials.',
+          icon: Icons.error_outline,
+          backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authProvider).isLoading;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - 
-                         MediaQuery.of(context).padding.top - 
-                         MediaQuery.of(context).padding.bottom,
+              minHeight: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom,
             ),
             child: IntrinsicHeight(
               child: Column(
@@ -48,16 +124,18 @@ class LoginPage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
-                        children: const [
+                        children: [
                           AuthTextField(
                             label: 'Email',
                             hintText: 'jane@example.com',
                             keyboardType: TextInputType.emailAddress,
+                            controller: _emailController,
                           ),
-                          SizedBox(height: AppSpacing.lg),
+                          const SizedBox(height: AppSpacing.lg),
                           PasswordTextField(
                             label: 'Password',
                             hintText: '••••••••',
+                            controller: _passwordController,
                           ),
                         ],
                       ),
@@ -82,9 +160,7 @@ class LoginPage extends StatelessWidget {
                   const Spacer(),
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
-                    onPressed: () {
-                      context.go('/');
-                    },
+                    onPressed: isLoading ? null : _handleLogin,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
@@ -93,10 +169,23 @@ class LoginPage extends StatelessWidget {
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.arrow_forward, size: 20),
-                        SizedBox(width: AppSpacing.sm),
-                        Text('Log In'),
+                      children: [
+                        if (isLoading) ...[
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          const Text('Logging in...'),
+                        ] else ...[
+                          const Icon(Icons.arrow_forward, size: 20),
+                          const SizedBox(width: AppSpacing.sm),
+                          const Text('Log In'),
+                        ],
                       ],
                     ),
                   ),
@@ -108,7 +197,10 @@ class LoginPage extends StatelessWidget {
                     child: Text(
                       'Need an account? Sign up',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.8),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

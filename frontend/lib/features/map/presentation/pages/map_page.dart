@@ -401,28 +401,48 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
-  /// Ends the journey. The post-ride survey dialog still shows, but the
-  /// survey payload is intentionally discarded — only the journey is marked
-  /// `completed` in the backend (survey persistence is out of scope).
   void _endJourney() {
     showDialog(
       context: context,
       builder: (dialogContext) => RideSurveyDialog(
-        onSubmitted: (fare, rating, safetyRating, isStudentFare, feedback) async {
-          final success =
-              await ref.read(journeyProvider.notifier).endJourney();
+        onSkip: () async {
+          final success = await ref.read(journeyProvider.notifier).endJourney();
           if (!mounted) return;
-          final studentTag = isStudentFare ? ' (Student)' : '';
           CommuterToast.show(
             context,
             message: success
-                ? 'Journey ended. ৳$fare$studentTag | $rating★ | $safetyRating'
+                ? 'Journey ended.'
                 : 'Failed to end journey. Please try again.',
             icon: success
                 ? Icons.check_circle_rounded
                 : Icons.error_outline_rounded,
           );
           if (success) _clearRoute();
+        },
+        onSubmitted: (fare, rating, safetyRating, isStudentFare, feedback) async {
+          final notifier = ref.read(journeyProvider.notifier);
+          final surveySaved = await notifier.submitSurvey(
+            fare: fare,
+            rating: rating,
+            safetyRating: safetyRating,
+            isStudentFare: isStudentFare,
+            feedback: feedback,
+          );
+          final journeyEnded = await notifier.endJourney();
+          if (!mounted) return;
+          final studentTag = isStudentFare ? ' (Student)' : '';
+          CommuterToast.show(
+            context,
+            message: journeyEnded
+                ? (surveySaved
+                    ? 'Journey ended. ৳$fare$studentTag | $rating★ | $safetyRating'
+                    : 'Journey ended. Survey not saved.')
+                : 'Failed to end journey. Please try again.',
+            icon: journeyEnded
+                ? Icons.check_circle_rounded
+                : Icons.error_outline_rounded,
+          );
+          if (journeyEnded) _clearRoute();
         },
       ),
     );
