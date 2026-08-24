@@ -2,9 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
+import 'package:frontend/features/safety/data/repositories/supabase_incident_report_repository.dart';
+
+// Must match the dev user seeded in supabase/seed.sql — mirrors the same
+// placeholder used in journey_notifier.dart until real Supabase Auth lands.
+const String _kDevUserId = '00000000-0000-0000-0000-000000000001';
 
 class _RatingCategory {
   final IconData icon;
@@ -308,19 +315,22 @@ class _SubmissionSuccessDialog extends StatelessWidget {
   }
 }
 
-class IncidentReportPage extends StatefulWidget {
+class IncidentReportPage extends ConsumerStatefulWidget {
   const IncidentReportPage({super.key});
 
   @override
-  State<IncidentReportPage> createState() => _IncidentReportPageState();
+  ConsumerState<IncidentReportPage> createState() => _IncidentReportPageState();
 }
 
-class _IncidentReportPageState extends State<IncidentReportPage> {
+class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final Map<String, int> _ratings = {};
   bool _isLocating = true;
   String? _locationError;
+  double? _latitude;
+  double? _longitude;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -355,6 +365,8 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
       final areaName = await _reverseGeocode(position.latitude, position.longitude);
       if (!mounted) return;
       setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
         _locationController.text = areaName ??
             '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
         _isLocating = false;
@@ -402,23 +414,54 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
   }
 
   Future<void> _handleSubmit() async {
-    // TODO: Persist the report to a backend once one is available.
-    await showGeneralDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withValues(alpha: 0.4),
-      transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (context, _, _) => const _SubmissionSuccessDialog(),
-      transitionBuilder: (context, animation, _, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
-        return FadeTransition(
-          opacity: animation,
-          child: ScaleTransition(scale: curved, child: child),
-        );
-      },
-    );
-    if (mounted) Navigator.of(context).pop();
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final userId = ref.read(authProvider).valueOrNull?.id ?? _kDevUserId;
+    final locationText = _locationController.text.trim();
+    final notes = _notesController.text.trim();
+
+    try {
+      await ref.read(incidentReportRepositoryProvider).submit(
+            userId: userId,
+            locationText: locationText.isEmpty ? null : locationText,
+            latitude: _latitude,
+            longitude: _longitude,
+            lightingRating: _ratings['Lighting'] ?? 3,
+            publicVisibilityRating: _ratings['Public Visibility'] ?? 3,
+            crowdDensityRating: _ratings['Crowd Density'] ?? 3,
+            securityPresenceRating: _ratings['Police/Security Presence'] ?? 3,
+            harassmentFrequencyRating: _ratings['Harassment Frequency'] ?? 3,
+            theftFrequencyRating: _ratings['Theft/Snatching Frequency'] ?? 3,
+            overallSafetyRating: _ratings['Overall Feeling of Safety'] ?? 3,
+            notes: notes.isEmpty ? null : notes,
+          );
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+
+      await showGeneralDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
+        barrierColor: Colors.black.withValues(alpha: 0.4),
+        transitionDuration: const Duration(milliseconds: 350),
+        pageBuilder: (context, _, _) => const _SubmissionSuccessDialog(),
+        transitionBuilder: (context, animation, _, child) {
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(scale: curved, child: child),
+          );
+        },
+      );
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit report: $error')),
+      );
+    }
   }
 
   Widget _sectionCard({required Widget child}) {
@@ -563,9 +606,18 @@ class _IncidentReportPageState extends State<IncidentReportPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: _handleSubmit,
-                  icon: const Icon(Icons.send, size: 18),
-                  label: const Text('Submit Report'),
+                  onPressed: _isSubmitting ? null : _handleSubmit,
+                  icon: _isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send, size: 18),
+                  label: Text(_isSubmitting ? 'Submitting...' : 'Submit Report'),
                 ),
               ),
             ],
