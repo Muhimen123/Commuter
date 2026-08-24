@@ -60,16 +60,43 @@ class AuthUser {
         'updatedAt': updatedAt.toIso8601String(),
       };
 
+  Map<String, dynamic> toDbMap({String? passwordHash}) => {
+        'id': id,
+        'full_name': fullName,
+        'email': email,
+        'phone_number': phoneNumber,
+        'password_hash': passwordHash ?? 'supabase_auth',
+        'profile_photo_url': profilePhotoUrl,
+        'location_permission_granted': locationPermissionGranted,
+        'contacts_permission_granted': contactsPermissionGranted,
+        'created_at': createdAt.toUtc().toIso8601String(),
+        'updated_at': updatedAt.toUtc().toIso8601String(),
+      };
+
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
         id: json['id'] as String,
-        fullName: json['fullName'] as String,
-        email: json['email'] as String,
-        phoneNumber: json['phoneNumber'] as String,
-        profilePhotoUrl: json['profilePhotoUrl'] as String?,
-        locationPermissionGranted: json['locationPermissionGranted'] as bool,
-        contactsPermissionGranted: json['contactsPermissionGranted'] as bool,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
+        fullName: (json['fullName'] ?? json['full_name'] ?? '') as String,
+        email: (json['email'] ?? '') as String,
+        phoneNumber:
+            (json['phoneNumber'] ?? json['phone_number'] ?? '') as String,
+        profilePhotoUrl:
+            (json['profilePhotoUrl'] ?? json['profile_photo_url']) as String?,
+        locationPermissionGranted: (json['locationPermissionGranted'] ??
+            json['location_permission_granted'] ??
+            false) as bool,
+        contactsPermissionGranted: (json['contactsPermissionGranted'] ??
+            json['contacts_permission_granted'] ??
+            false) as bool,
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'] as String)
+            : json['created_at'] != null
+                ? DateTime.parse(json['created_at'] as String)
+                : DateTime.now(),
+        updatedAt: json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'] as String)
+            : json['updated_at'] != null
+                ? DateTime.parse(json['updated_at'] as String)
+                : DateTime.now(),
       );
 
   @override
