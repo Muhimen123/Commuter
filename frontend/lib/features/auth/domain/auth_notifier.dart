@@ -71,7 +71,7 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
     final now = DateTime.now();
 
     final user = AuthUser(
-      id: '00000000-0000-0000-0000-0000-000000000001',
+      id: '00000000-0000-0000-0000-000000000001',
       fullName: fullName,
       email: email,
       phoneNumber: phoneNumber,
