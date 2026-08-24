@@ -5,6 +5,7 @@ import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import 'package:frontend/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:frontend/features/auth/presentation/widgets/password_text_field.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -28,12 +29,76 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     super.dispose();
   }
 
+  void _handleSignUp() {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+
+    if (name.isEmpty) {
+      CommuterToast.show(
+        context,
+        message: 'Please enter your full name.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    if (email.isEmpty || !email.contains('@')) {
+      CommuterToast.show(
+        context,
+        message: 'Please enter a valid email address.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    if (phone.isEmpty) {
+      CommuterToast.show(
+        context,
+        message: 'Please enter your phone number.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      CommuterToast.show(
+        context,
+        message: 'Password must be at least 6 characters.',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    ref.read(authProvider.notifier).signUp(
+          fullName: name,
+          email: email,
+          phoneNumber: phone,
+          password: password,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Navigate to home when sign-up succeeds.
     ref.listen(authProvider, (prev, next) {
-      if (next.hasValue && next.value != null) {
+      if (prev?.isLoading == true && next.hasValue && next.value != null) {
         context.go('/');
+      } else if (prev?.isLoading == true && next.hasError) {
+        final error = next.error;
+        final message = error
+            .toString()
+            .replaceAll('Exception: ', '')
+            .replaceAll('AuthException(message: ', '')
+            .replaceAll(')', '');
+        CommuterToast.show(
+          context,
+          message: message.isNotEmpty ? message : 'Sign up failed. Please try again.',
+          icon: Icons.error_outline,
+          backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+        );
       }
     });
 
@@ -108,15 +173,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               ),
               const SizedBox(height: AppSpacing.md),
               FilledButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        ref.read(authProvider.notifier).signUp(
-                              fullName: _nameController.text.trim(),
-                              email: _emailController.text.trim(),
-                              phoneNumber: _phoneController.text.trim(),
-                            );
-                      },
+                onPressed: isLoading ? null : _handleSignUp,
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                   shape: RoundedRectangleBorder(
