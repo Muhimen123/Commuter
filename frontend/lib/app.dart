@@ -6,6 +6,7 @@ import 'package:frontend/features/map/presentation/pages/map_page.dart';
 import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend/features/auth/presentation/pages/signup_page.dart';
+import 'package:frontend/features/auth/presentation/pages/check_email_page.dart';
 import 'package:frontend/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:frontend/features/auth/presentation/pages/verify_code_page.dart';
 import 'package:frontend/features/auth/presentation/pages/reset_password_page.dart';
@@ -90,6 +91,13 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/signup',
       builder: (context, state) => const SignupPage(),
+    ),
+    GoRoute(
+      path: '/check_email',
+      builder: (context, state) {
+        final email = state.extra as String?;
+        return CheckEmailPage(email: email);
+      },
     ),
     GoRoute(
       path: '/forgot_password',

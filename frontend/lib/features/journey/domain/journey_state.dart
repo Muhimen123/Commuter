@@ -7,6 +7,7 @@ class JourneyState {
   final bool isAddingStop;
   final bool isEnding;
   final bool isCancelling;
+  final bool isSubmittingSurvey;
   final String? error;
 
   const JourneyState({
@@ -16,6 +17,7 @@ class JourneyState {
     this.isAddingStop = false,
     this.isEnding = false,
     this.isCancelling = false,
+    this.isSubmittingSurvey = false,
     this.error,
   });
 
@@ -28,6 +30,7 @@ class JourneyState {
     bool? isAddingStop,
     bool? isEnding,
     bool? isCancelling,
+    bool? isSubmittingSurvey,
     String? error,
     bool clearError = false,
   }) {
@@ -38,6 +41,7 @@ class JourneyState {
       isAddingStop: isAddingStop ?? this.isAddingStop,
       isEnding: isEnding ?? this.isEnding,
       isCancelling: isCancelling ?? this.isCancelling,
+      isSubmittingSurvey: isSubmittingSurvey ?? this.isSubmittingSurvey,
       error: clearError ? null : (error ?? this.error),
     );
   }
