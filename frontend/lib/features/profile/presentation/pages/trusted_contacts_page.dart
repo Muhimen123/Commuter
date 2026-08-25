@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/add_contact_dialog.dart';
-import '../domain/trusted_contacts_notifier.dart';
+import 'package:frontend/features/profile/presentation/widgets/add_contact_dialog.dart';
+import 'package:frontend/features/profile/domain/trusted_contacts_notifier.dart';
 
 class TrustedContactsPage extends ConsumerStatefulWidget {
   const TrustedContactsPage({super.key});
@@ -12,14 +12,16 @@ class TrustedContactsPage extends ConsumerStatefulWidget {
 
 class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
   void _addNewContact() async {
-    final result = await showDialog<String>(
+    final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => const AddContactDialog(),
     );
 
-    if (result != null && result.isNotEmpty) {
-      // Logic for actual name parsing if needed, using placeholder for now
-      ref.read(trustedContactsProvider.notifier).addContact('New Guardian', result);
+    if (result != null && result['name'] != null && result['phone'] != null) {
+      ref.read(trustedContactsProvider.notifier).addContact(
+        result['name']!, 
+        result['phone']!,
+      );
     }
   }
 

@@ -1,27 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../data/directions_repository.dart';
-import '../../data/places_repository.dart';
-import '../../data/mock_safety_heatmap_repository.dart';
-import '../../domain/entities/safety_point.dart';
-import '../widgets/safety_map_button.dart';
+
+import 'package:frontend/features/journey/domain/journey_notifier.dart';
+import 'package:frontend/features/map/data/directions_repository.dart';
+import 'package:frontend/features/map/data/places_repository.dart';
+import 'package:frontend/features/map/data/mock_safety_heatmap_repository.dart';
+import 'package:frontend/features/map/domain/entities/safety_point.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_map_button.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
-import '../widgets/active_ride_panel.dart';
-import '../widgets/add_stop_confirmation_dialog.dart';
-import '../widgets/map_search_field.dart';
-import '../widgets/ride_survey_dialog.dart';
-import '../widgets/safety_heatmap_layer.dart';
-import '../widgets/safety_heatmap_legend.dart';
-import '../widgets/start_journey_fab.dart';
-import '../widgets/bus_selection_dialog.dart';
-import '../widgets/shared_location_chip.dart';
-import '../widgets/my_location_button.dart';
-import '../../safety/domain/sharing_notifier.dart';
-import '../../safety/domain/entities/shared_location.dart';
+import 'package:frontend/features/map/presentation/widgets/active_ride_panel.dart';
+import 'package:frontend/features/map/presentation/widgets/add_stop_confirmation_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/map_search_field.dart';
+import 'package:frontend/features/map/presentation/widgets/ride_survey_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_heatmap_layer.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_heatmap_legend.dart';
+import 'package:frontend/features/map/presentation/widgets/start_journey_fab.dart';
+import 'package:frontend/features/map/presentation/widgets/bus_selection_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/shared_location_chip.dart';
+import 'package:frontend/features/map/presentation/widgets/my_location_button.dart';
+import 'package:frontend/features/safety/domain/sharing_notifier.dart';
+import 'package:frontend/features/safety/domain/entities/shared_location.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   final String title;

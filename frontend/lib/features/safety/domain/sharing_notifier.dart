@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'shared_location.dart';
-import '../../auth/domain/auth_notifier.dart';
-import '../../journey/domain/journey_notifier.dart';
+import 'package:frontend/features/safety/domain/entities/shared_location.dart';
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
+import 'package:frontend/features/journey/domain/journey_notifier.dart';
 
 class SharingState {
   final List<SharedLocation> sharedWithMe;
@@ -39,13 +39,14 @@ class SharingNotifier extends StateNotifier<SharingState> {
   final SupabaseClient _supabase = Supabase.instance.client;
   final Ref _ref;
   StreamSubscription<Position>? _positionSubscription;
+  Timer? _refreshTimer;
 
   SharingNotifier(this._ref) : super(SharingState()) {
     // Initial load
     refresh();
     
-    // Auto-refresh "Shared With Me" every 30 seconds for live updates
-    Timer.periodic(const Duration(seconds: 30), (_) => loadSharedWithMe());
+    // Auto-refresh "Shared With Me" every 15 seconds for live updates
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => loadSharedWithMe());
   }
 
   Future<void> refresh() async {
@@ -65,7 +66,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
           .select();
       
       final locations = (data as List)
-          .map((m) => SharedLocation.fromMap(m))
+          .map((m) => SharedLocation.fromMap(m as Map<String, dynamic>))
           .toList();
           
       state = state.copyWith(sharedWithMe: locations);
@@ -76,7 +77,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
 
   /// Fetches sharing sessions initiated BY the current user
   Future<void> loadMyActiveShares() async {
-    final userId = _ref.read(authProvider).user?.id;
+    final userId = _ref.read(authProvider).valueOrNull?.id;
     if (userId == null) return;
 
     try {
@@ -104,7 +105,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
     required String contactId,
     String? recipientUserId,
   }) async {
-    final userId = _ref.read(authProvider).user?.id;
+    final userId = _ref.read(authProvider).valueOrNull?.id;
     if (userId == null) return;
 
     final journeyId = _ref.read(journeyProvider).activeJourney?.id;
@@ -119,6 +120,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
       
       await loadMyActiveShares();
     } catch (e) {
+      debugPrint('startSharing error: $e');
       state = state.copyWith(error: 'Failed to start sharing');
     }
   }
@@ -131,6 +133,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
       });
       await loadMyActiveShares();
     } catch (e) {
+      debugPrint('stopSharing error: $e');
       state = state.copyWith(error: 'Failed to stop sharing');
     }
   }
@@ -145,7 +148,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
         distanceFilter: 10, // Ping every 10 meters
       ),
     ).listen((position) async {
-      final userId = _ref.read(authProvider).user?.id;
+      final userId = _ref.read(authProvider).valueOrNull?.id;
       final journeyId = _ref.read(journeyProvider).activeJourney?.id;
       
       if (userId == null) return;
@@ -170,6 +173,7 @@ class SharingNotifier extends StateNotifier<SharingState> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _stopLocationPings();
     super.dispose();
   }

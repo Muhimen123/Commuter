@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/location_sharing_with_section.dart';
-import '../widgets/location_shared_with_section.dart';
+import '../widgets/sharing_section.dart';
 import '../widgets/survey_history_section.dart';
 import '../widgets/safety_action_buttons.dart';
 
@@ -34,16 +33,13 @@ class _SafetyPageState extends State<SafetyPage> {
             SizedBox(height: 32),
             
             SafetyActionButtons(),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             
-            LocationSharingWithSection(),
-            SizedBox(height: 24),
+            const SharingSection(),
+            const SizedBox(height: 24),
             
-            LocationSharedWithSection(),
-            SizedBox(height: 24),
-            
-            SurveyHistorySection(),
-            SizedBox(height: 32),
+            const SurveyHistorySection(),
+            const SizedBox(height: 32),
           ],
         ),
       ),

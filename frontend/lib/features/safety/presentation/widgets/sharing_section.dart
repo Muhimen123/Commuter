@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/sharing_notifier.dart';
-import '../../../profile/domain/trusted_contacts_notifier.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/features/safety/domain/sharing_notifier.dart';
+import 'package:frontend/features/safety/domain/entities/shared_location.dart';
+import 'package:frontend/features/profile/domain/trusted_contacts_notifier.dart';
 
 class SharingSection extends ConsumerWidget {
   const SharingSection({super.key});
@@ -92,12 +94,19 @@ class SharingSection extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                ...sharedWithMe.where((loc) => loc != null).map((loc) => _buildGuardianTile(
+                for (final loc in sharedWithMe)
+                  if (loc != null)
+                    _buildGuardianTile(
                       context,
-                      loc!.sharerName,
+                      loc.sharerName,
                       loc.lastPingAt != null ? 'Last seen just now' : 'Waiting for signal',
                       loc.sharerPhoto,
-                    )),
+                      onTap: () {
+                        if (loc.latitude != null && loc.longitude != null) {
+                          context.go('/?lat=${loc.latitude}&lon=${loc.longitude}&name=${loc.sharerName}');
+                        }
+                      },
+                    ),
               ],
             ),
           ),
@@ -152,36 +161,26 @@ class SharingSection extends ConsumerWidget {
     BuildContext context,
     String name,
     String status,
-    String? photoUrl,
-  ) {
+    String? photoUrl, {
+    VoidCallback? onTap,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-            child: photoUrl == null ? Text(name[0]) : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(status,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade600)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.all(12),
+        tileColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: CircleAvatar(
+          radius: 20,
+          backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+          child: photoUrl == null ? Text(name[0]) : null,
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(status,
+            style: TextStyle(
+                fontSize: 12, color: Colors.grey.shade600)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       ),
     );
   }

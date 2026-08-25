@@ -5,8 +5,17 @@
 -- ---------------------------------------------------------------------
 -- Schema Migration: Ensure columns exist
 -- ---------------------------------------------------------------------
+-- Ensure the journey_id column exists in location_shares
 ALTER TABLE location_shares
 ADD COLUMN IF NOT EXISTS journey_id UUID REFERENCES journeys(id) ON DELETE SET NULL;
+
+-- Ensure user_id column exists in pings to allow journey-independent tracking
+ALTER TABLE journey_location_pings
+ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;
+
+-- Make journey_id optional in pings
+ALTER TABLE journey_location_pings
+ALTER COLUMN journey_id DROP NOT NULL;
 
 -- ---------------------------------------------------------------------
 -- Enable Row Level Security
@@ -46,7 +55,7 @@ END $$;
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION start_sharing_location(
   p_sharer_user_id UUID,
-  p_journey_id UUID,
+  p_journey_id UUID DEFAULT NULL,
   p_recipient_user_id UUID DEFAULT NULL,
   p_trusted_contact_id UUID DEFAULT NULL
 ) RETURNS location_shares
@@ -148,25 +157,21 @@ SELECT
     u.id as sharer_id,
     u.full_name as sharer_name,
     u.profile_photo_url as sharer_photo,
-    j.id as journey_id,
-    j.status as journey_status,
-    j.destination_name,
+    ls.journey_id,
     lp.latitude as last_lat,
     lp.longitude as last_lng,
     lp.recorded_at as last_ping_at
 FROM location_shares ls
 JOIN users u ON u.id = ls.sharer_user_id
-JOIN journeys j ON j.id = ls.journey_id
 LEFT JOIN LATERAL (
-    -- Get the most recent ping for this journey
+    -- Get the most recent ping for this user (independent of journey)
     SELECT latitude, longitude, recorded_at
     FROM journey_location_pings
-    WHERE journey_id = j.id
+    WHERE user_id = u.id
     ORDER BY recorded_at DESC
     LIMIT 1
 ) lp ON TRUE
 WHERE ls.recipient_user_id = auth.uid()
-  AND ls.is_active = TRUE
-  AND j.status = 'active';
+  AND ls.is_active = TRUE;
 
 GRANT SELECT ON active_shares_with_me TO authenticated;

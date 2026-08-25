@@ -8,10 +8,12 @@ class AddContactDialog extends StatefulWidget {
 }
 
 class _AddContactDialogState extends State<AddContactDialog> {
+  final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -20,14 +22,29 @@ class _AddContactDialogState extends State<AddContactDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Add New Contact'),
-      content: TextField(
-        controller: _phoneController,
-        keyboardType: TextInputType.phone,
-        decoration: const InputDecoration(
-          labelText: 'Phone Number',
-          hintText: '+1 234 567 890',
-          prefixIcon: Icon(Icons.phone),
-        ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _nameController,
+            keyboardType: TextInputType.name,
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              hintText: 'John Doe',
+              prefixIcon: Icon(Icons.person),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Phone Number',
+              hintText: '+1 234 567 890',
+              prefixIcon: Icon(Icons.phone),
+            ),
+          ),
+        ],
       ),
       actions: [
         TextButton(
@@ -36,8 +53,12 @@ class _AddContactDialogState extends State<AddContactDialog> {
         ),
         FilledButton(
           onPressed: () {
-            // Logic to add contact would go here
-            Navigator.pop(context, _phoneController.text);
+            if (_nameController.text.isNotEmpty && _phoneController.text.isNotEmpty) {
+              Navigator.pop(context, {
+                'name': _nameController.text,
+                'phone': _phoneController.text,
+              });
+            }
           },
           child: const Text('Add'),
         ),

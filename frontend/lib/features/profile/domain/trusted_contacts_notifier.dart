@@ -34,7 +34,7 @@ class TrustedContactsNotifier extends StateNotifier<AsyncValue<List<TrustedConta
   }
 
   Future<void> loadContacts() async {
-    final userId = _ref.read(authProvider).user?.id;
+    final userId = _ref.read(authProvider).valueOrNull?.id;
     if (userId == null) return;
 
     state = const AsyncValue.loading();
