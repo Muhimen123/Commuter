@@ -268,10 +268,12 @@ CREATE TABLE location_shares (
     recipient_user_id   UUID REFERENCES users(id) ON DELETE SET NULL, -- populated when the contact is a registered app user
     is_active           BOOLEAN NOT NULL DEFAULT TRUE,
     started_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    ended_at            TIMESTAMPTZ
+    ended_at            TIMESTAMPTZ,
+    journey_id          UUID REFERENCES journeys(id) ON DELETE SET NULL
 );
 CREATE INDEX idx_location_shares_sharer ON location_shares(sharer_user_id);
 CREATE INDEX idx_location_shares_recipient ON location_shares(recipient_user_id);
+CREATE INDEX idx_location_shares_journey ON location_shares(journey_id);
 
 -- =====================================================================
 -- NOTES
