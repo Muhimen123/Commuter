@@ -53,7 +53,7 @@ class TrustedContactsNotifier extends StateNotifier<AsyncValue<List<TrustedConta
       
       final contacts = (data as List)
           .map((m) => TrustedContact.fromMap(m, userId))
-          .where((c) => c.status != 'rejected') // Hide rejected invites
+          .where((c) => c.status != 'rejected' && c.linkedUserId != userId) // Filter out rejected and self
           .toList();
           
       state = AsyncValue.data(contacts);
