@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/features/journey/data/repositories/supabase_journey_repository.dart';
 import 'package:frontend/features/journey/domain/entities/journey.dart';
 import 'package:frontend/features/journey/domain/entities/journey_status.dart';
@@ -7,6 +8,7 @@ import 'package:frontend/features/journey/domain/entities/journey_stop.dart';
 import 'package:frontend/features/journey/domain/entities/post_ride_survey.dart';
 import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:frontend/features/journey/domain/repositories/journey_repository.dart';
+import 'package:frontend/features/journey/domain/simulation_provider.dart';
 
 Journey _journey({
   String id = 'journey-1',
@@ -541,6 +543,103 @@ void main() {
         expect(journey, isNotNull);
         expect(repo.startCalls, hasLength(1));
         expect(repo.activeJourneyReturn, isNull); // never consulted
+      });
+    });
+
+    group('simulation', () {
+      const routePoints = [LatLng(23.7937, 90.4066), LatLng(23.7333, 90.4224)];
+
+      test('does not simulate when simulation is disabled', () async {
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+
+        expect(container.read(journeyProvider).isSimulating, isFalse);
+      });
+
+      test('drives simulatedPosition from route points when enabled',
+          () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+
+        final state = container.read(journeyProvider);
+        expect(state.isSimulating, isTrue);
+        expect(state.simulatedPosition, routePoints.first);
+      });
+
+      test('toggling simulation off mid-ride stops it and clears the position',
+          () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+        expect(container.read(journeyProvider).isSimulating, isTrue);
+
+        container.read(simulationEnabledProvider.notifier).state = false;
+
+        expect(container.read(journeyProvider).isSimulating, isFalse);
+        expect(container.read(journeyProvider).simulatedPosition, isNull);
+      });
+
+      test('falls back to decoding routePolyline when routePoints is omitted',
+          () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+        repo.startReturn = _journey();
+
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePolyline: '_p~iF~ps|U_ulLnnqC_mqNvxq`@', // encodes 3 points
+        );
+
+        expect(container.read(journeyProvider).isSimulating, isTrue);
+      });
+
+      test(
+          'pauseSimulation freezes the position and resumeSimulation '
+          'continues advancing', () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+
+        notifier.pauseSimulation();
+        final frozen = container.read(journeyProvider).simulatedPosition;
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(container.read(journeyProvider).simulatedPosition, frozen);
+
+        notifier.resumeSimulation();
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(
+          container.read(journeyProvider).simulatedPosition,
+          isNot(frozen),
+        );
+      });
+
+      test('ending the journey stops the simulator', () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+        expect(container.read(journeyProvider).isSimulating, isTrue);
+
+        await notifier.endJourney();
+
+        expect(container.read(journeyProvider).isSimulating, isFalse);
+        expect(container.read(journeyProvider).simulatedPosition, isNull);
       });
     });
 

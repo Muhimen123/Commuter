@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/navigation/animated_branch_container.dart';
+import 'package:frontend/core/navigation/page_transitions.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
@@ -27,9 +29,14 @@ final GoRouter _router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
-    StatefulShellRoute.indexedStack(
+    StatefulShellRoute(
       builder: (context, state, navigationShell) =>
           CommuterScaffold(navigationShell: navigationShell),
+      navigatorContainerBuilder: (context, navigationShell, children) =>
+          AnimatedBranchContainer(
+        currentIndex: navigationShell.currentIndex,
+        children: children,
+      ),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -86,48 +93,61 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/login',
-      builder: (context, state) => const LoginPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const LoginPage()),
     ),
     GoRoute(
       path: '/signup',
-      builder: (context, state) => const SignupPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const SignupPage()),
     ),
     GoRoute(
       path: '/check_email',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final email = state.extra as String?;
-        return CheckEmailPage(email: email);
+        return slideTransitionPage(
+          state: state,
+          child: CheckEmailPage(email: email),
+        );
       },
     ),
     GoRoute(
       path: '/forgot_password',
-      builder: (context, state) => const ForgotPasswordPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const ForgotPasswordPage()),
     ),
     GoRoute(
       path: '/verify_code',
-      builder: (context, state) => const VerifyCodePage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const VerifyCodePage()),
     ),
     GoRoute(
       path: '/reset_password',
-      builder: (context, state) => const ResetPasswordPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const ResetPasswordPage()),
     ),
     GoRoute(
       path: '/settings',
-      builder: (context, state) => const SettingsPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const SettingsPage()),
     ),
     GoRoute(
       path: '/ride_history',
-      builder: (context, state) => const RideHistoryPage(),
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const RideHistoryPage()),
     ),
     GoRoute(
       path: '/trusted_contacts',
-      builder: (context, state) => const TrustedContactsPage(),
+      pageBuilder: (context, state) => slideTransitionPage(
+        state: state,
+        child: const TrustedContactsPage(),
+      ),
     ),
     GoRoute(
       path: '/bus_profile',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final ride = state.extra as Ride;
-        return BusProfilePage(ride: ride);
+        return slideTransitionPage(state: state, child: BusProfilePage(ride: ride));
       },
     ),
   ],

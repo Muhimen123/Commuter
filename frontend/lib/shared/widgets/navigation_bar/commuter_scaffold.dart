@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/features/journey/domain/simulation_provider.dart';
+import 'package:frontend/features/journey/presentation/widgets/simulation_toggle_dialog.dart';
+import 'package:frontend/shared/widgets/commuter_toast.dart';
 import 'package:frontend/features/safety/domain/safety_notifier.dart';
 
 class CommuterScaffold extends ConsumerWidget {
@@ -30,20 +33,27 @@ class CommuterScaffold extends ConsumerWidget {
           indicatorShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
+              icon: GestureDetector(
+                onLongPress: () => _onHomeLongPress(context, ref),
+                child: const Icon(Icons.home_outlined),
+              ),
+              selectedIcon: GestureDetector(
+                onLongPress: () => _onHomeLongPress(context, ref),
+                child: const Icon(Icons.home),
+              ),
               label: 'Home',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.directions_bus),
               label: 'Ride',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.shield_outlined),
               label: 'Safety',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.person_outline),
               label: 'Profile',
             ),
@@ -57,6 +67,26 @@ class CommuterScaffold extends ConsumerWidget {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
+    );
+  }
+
+  Future<void> _onHomeLongPress(BuildContext context, WidgetRef ref) async {
+    final isEnabled = ref.read(simulationEnabledProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => SimulationToggleDialog(isCurrentlyEnabled: isEnabled),
+    );
+    if (confirmed != true) return;
+
+    final newValue = !isEnabled;
+    ref.read(simulationEnabledProvider.notifier).state = newValue;
+    if (!context.mounted) return;
+    CommuterToast.show(
+      context,
+      message: newValue
+          ? 'Ride simulation enabled'
+          : 'Ride simulation disabled',
+      icon: newValue ? Icons.developer_mode_rounded : Icons.gps_fixed_rounded,
     );
   }
 
