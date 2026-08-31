@@ -16,6 +16,7 @@ import '../widgets/map_search_field.dart';
 import '../widgets/ride_survey_dialog.dart';
 import '../widgets/safety_heatmap_layer.dart';
 import '../widgets/safety_heatmap_legend.dart';
+import '../widgets/simulation_badge.dart';
 import '../widgets/start_journey_fab.dart';
 import '../widgets/bus_selection_dialog.dart';
 import '../widgets/shared_location_chip.dart';
@@ -136,7 +137,19 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
+  /// Keeps the camera centered on the simulated position as it moves,
+  /// without resetting the user's current zoom level.
+  Future<void> _followSimulatedPosition(LatLng position) async {
+    await _controller?.animateCamera(CameraUpdate.newLatLng(position));
+  }
+
   Future<void> _centerMapOnUser() async {
+    final journeyState = ref.read(journeyProvider);
+    if (journeyState.isSimulating && journeyState.simulatedPosition != null) {
+      await _animateTo(journeyState.simulatedPosition!, 17);
+      return;
+    }
+
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -473,6 +486,23 @@ class _MapPageState extends ConsumerState<MapPage> {
     };
   }
 
+  /// Builds the moving marker for the simulated ride position, replacing
+  /// the real GPS blue-dot while simulation is driving this journey.
+  Set<Marker> _buildSimulatedPositionMarker(LatLng? simulatedPosition) {
+    if (simulatedPosition == null) return const {};
+
+    return {
+      Marker(
+        markerId: const MarkerId('simulated_position'),
+        position: simulatedPosition,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        anchor: const Offset(0.5, 0.5),
+        flat: true,
+        zIndexInt: 2,
+      ),
+    };
+  }
+
   /// Builds the route polyline and destination marker.
   Set<Polyline> _buildRoutePolylines() {
     if (!_hasRoute || _routePoints.isEmpty) return const {};
@@ -528,7 +558,15 @@ class _MapPageState extends ConsumerState<MapPage> {
     final journeyState = ref.watch(journeyProvider);
     final journeyStarted = journeyState.hasActiveJourney;
     final isStartingJourney = journeyState.isStarting;
+    final isSimulating = journeyState.isSimulating;
     final safetyButtonBottom = journeyStarted ? 150.0 : 32.0;
+
+    ref.listen<LatLng?>(
+      journeyProvider.select((s) => s.simulatedPosition),
+      (previous, next) {
+        if (next != null) _followSimulatedPosition(next);
+      },
+    );
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -555,13 +593,14 @@ class _MapPageState extends ConsumerState<MapPage> {
             ),
             onMapCreated: _onMapCreated,
             onCameraMove: _onCameraMove,
-            myLocationEnabled: true,
+            myLocationEnabled: !isSimulating,
             myLocationButtonEnabled: false,
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             markers: {
               ..._buildSharedLocationMarker(),
               ..._buildRouteMarkers(),
+              ..._buildSimulatedPositionMarker(journeyState.simulatedPosition),
             },
             polylines: _buildRoutePolylines(),
             heatmaps: SafetyHeatmapBuilder.build(
@@ -585,6 +624,15 @@ class _MapPageState extends ConsumerState<MapPage> {
                   _centerMapOnUser();
                 },
               ),
+            ),
+
+          // "Simulating ride" badge — shown whenever the RideSimulator is
+          // driving this journey's pings, so it's never mistaken for real GPS.
+          if (isSimulating)
+            Positioned(
+              top: topPadding + 76 + (_isViewingSharedLocation ? 56 : 0),
+              left: 16,
+              child: const SimulationBadge(),
             ),
 
           // Safety heatmap loading indicator (overlay, not on map).
