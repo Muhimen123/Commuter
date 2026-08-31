@@ -389,18 +389,24 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
-  void _showAddStopDialog() {
+  Future<void> _showAddStopDialog() async {
     final center = _lastCameraCenter;
-    showDialog(
+    final notifier = ref.read(journeyProvider.notifier);
+
+    // Freeze the simulated position while the user is confirming the stop,
+    // so it doesn't drift away from the location they're about to add.
+    notifier.pauseSimulation();
+
+    await showDialog(
       context: context,
       builder: (dialogContext) => AddStopConfirmationDialog(
         center: center,
         onAddStop: () async {
-          final stop = await ref.read(journeyProvider.notifier).addStop(
-                stopName: null,
-                latitude: center.latitude,
-                longitude: center.longitude,
-              );
+          final stop = await notifier.addStop(
+            stopName: null,
+            latitude: center.latitude,
+            longitude: center.longitude,
+          );
           if (!mounted) return;
           if (stop != null) {
             CommuterToast.show(
@@ -418,6 +424,8 @@ class _MapPageState extends ConsumerState<MapPage> {
         },
       ),
     );
+
+    notifier.resumeSimulation();
   }
 
   void _endJourney() {

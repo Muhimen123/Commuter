@@ -604,6 +604,29 @@ void main() {
         expect(container.read(journeyProvider).isSimulating, isTrue);
       });
 
+      test(
+          'pauseSimulation freezes the position and resumeSimulation '
+          'continues advancing', () async {
+        container.read(simulationEnabledProvider.notifier).state = true;
+        await notifier.startJourney(
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+          routePoints: routePoints,
+        );
+
+        notifier.pauseSimulation();
+        final frozen = container.read(journeyProvider).simulatedPosition;
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(container.read(journeyProvider).simulatedPosition, frozen);
+
+        notifier.resumeSimulation();
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(
+          container.read(journeyProvider).simulatedPosition,
+          isNot(frozen),
+        );
+      });
+
       test('ending the journey stops the simulator', () async {
         container.read(simulationEnabledProvider.notifier).state = true;
         await notifier.startJourney(

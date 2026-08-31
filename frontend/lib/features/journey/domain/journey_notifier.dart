@@ -287,6 +287,16 @@ class JourneyNotifier extends Notifier<JourneyState> {
     state = state.copyWith(simulationReachedDestination: false);
   }
 
+  /// Pauses the [RideSimulator] without losing progress — e.g. while the
+  /// user is confirming an "Add Stop" dialog and shouldn't see the position
+  /// drift out from under them. No-op if simulation isn't active.
+  /// Resume with [resumeSimulation].
+  void pauseSimulation() => _simulator?.stop();
+
+  /// Resumes a [RideSimulator] previously paused with [pauseSimulation],
+  /// continuing from where it left off. No-op if simulation isn't active.
+  void resumeSimulation() => _simulator?.start();
+
   void _stopSimulator() {
     _simulator?.dispose();
     _simulator = null;
