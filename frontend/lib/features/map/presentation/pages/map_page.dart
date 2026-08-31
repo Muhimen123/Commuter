@@ -103,24 +103,34 @@ class _MapPageState extends ConsumerState<MapPage> {
     final nameChanged = widget.sharedPersonName != oldWidget.sharedPersonName;
     final coordsChanged = widget.initialLat != oldWidget.initialLat ||
         widget.initialLon != oldWidget.initialLon;
-
-    if (nameChanged) {
+    
+    // If the name is present in the new widget, we should ensure the view is active.
+    // This fixes the bug where dismiss-then-tap-again didn't show the location.
+    if (widget.sharedPersonName != null && !_isViewingSharedLocation) {
+      setState(() {
+        _isViewingSharedLocation = true;
+      });
+    } else if (nameChanged) {
       setState(() {
         _isViewingSharedLocation = widget.sharedPersonName != null;
       });
     }
 
-    if (coordsChanged && widget.initialLat != null && widget.initialLon != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
-        if (widget.sharedPersonName != null && mounted) {
-          CommuterToast.show(
-            context,
-            message: 'Viewing ${widget.sharedPersonName}\'s live location',
-            icon: Icons.person_pin_circle_rounded,
-          );
-        }
-      });
+    if (widget.initialLat != null && widget.initialLon != null) {
+      // Always move the camera if we are in "viewing" mode and just received 
+      // parameters, or if the coordinates themselves actually changed.
+      if (coordsChanged || nameChanged || (widget.sharedPersonName != null && !_isViewingSharedLocation)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+          if (widget.sharedPersonName != null && mounted) {
+            CommuterToast.show(
+              context,
+              message: 'Viewing ${widget.sharedPersonName}\'s live location',
+              icon: Icons.person_pin_circle_rounded,
+            );
+          }
+        });
+      }
     }
   }
 
