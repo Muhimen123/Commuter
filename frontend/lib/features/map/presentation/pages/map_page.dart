@@ -1,25 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../data/directions_repository.dart';
-import '../../data/places_repository.dart';
-import '../../data/mock_safety_heatmap_repository.dart';
-import '../../domain/entities/safety_point.dart';
-import '../widgets/safety_map_button.dart';
+
+import 'package:frontend/features/journey/domain/journey_notifier.dart';
+import 'package:frontend/features/map/data/directions_repository.dart';
+import 'package:frontend/features/map/data/places_repository.dart';
+import 'package:frontend/features/map/data/mock_safety_heatmap_repository.dart';
+import 'package:frontend/features/map/domain/entities/safety_point.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_map_button.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
-import '../widgets/active_ride_panel.dart';
-import '../widgets/add_stop_confirmation_dialog.dart';
-import '../widgets/map_search_field.dart';
-import '../widgets/ride_survey_dialog.dart';
-import '../widgets/safety_heatmap_layer.dart';
-import '../widgets/safety_heatmap_legend.dart';
-import '../widgets/start_journey_fab.dart';
-import '../widgets/bus_selection_dialog.dart';
-import '../widgets/shared_location_chip.dart';
-import '../widgets/my_location_button.dart';
+import 'package:frontend/features/map/presentation/widgets/active_ride_panel.dart';
+import 'package:frontend/features/map/presentation/widgets/add_stop_confirmation_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/map_search_field.dart';
+import 'package:frontend/features/map/presentation/widgets/ride_survey_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_heatmap_layer.dart';
+import 'package:frontend/features/map/presentation/widgets/safety_heatmap_legend.dart';
+import 'package:frontend/features/map/presentation/widgets/start_journey_fab.dart';
+import 'package:frontend/features/map/presentation/widgets/bus_selection_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/shared_location_chip.dart';
+import 'package:frontend/features/map/presentation/widgets/my_location_button.dart';
+import 'package:frontend/features/safety/domain/sharing_notifier.dart';
+import 'package:frontend/features/safety/domain/entities/shared_location.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   final String title;
@@ -100,24 +103,34 @@ class _MapPageState extends ConsumerState<MapPage> {
     final nameChanged = widget.sharedPersonName != oldWidget.sharedPersonName;
     final coordsChanged = widget.initialLat != oldWidget.initialLat ||
         widget.initialLon != oldWidget.initialLon;
-
-    if (nameChanged) {
+    
+    // If the name is present in the new widget, we should ensure the view is active.
+    // This fixes the bug where dismiss-then-tap-again didn't show the location.
+    if (widget.sharedPersonName != null && !_isViewingSharedLocation) {
+      setState(() {
+        _isViewingSharedLocation = true;
+      });
+    } else if (nameChanged) {
       setState(() {
         _isViewingSharedLocation = widget.sharedPersonName != null;
       });
     }
 
-    if (coordsChanged && widget.initialLat != null && widget.initialLon != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
-        if (widget.sharedPersonName != null && mounted) {
-          CommuterToast.show(
-            context,
-            message: 'Viewing ${widget.sharedPersonName}\'s live location',
-            icon: Icons.person_pin_circle_rounded,
-          );
-        }
-      });
+    if (widget.initialLat != null && widget.initialLon != null) {
+      // Always move the camera if we are in "viewing" mode and just received 
+      // parameters, or if the coordinates themselves actually changed.
+      if (coordsChanged || nameChanged || (widget.sharedPersonName != null && !_isViewingSharedLocation)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _animateTo(LatLng(widget.initialLat!, widget.initialLon!), 16.0);
+          if (widget.sharedPersonName != null && mounted) {
+            CommuterToast.show(
+              context,
+              message: 'Viewing ${widget.sharedPersonName}\'s live location',
+              icon: Icons.person_pin_circle_rounded,
+            );
+          }
+        });
+      }
     }
   }
 
@@ -448,28 +461,54 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
-  /// Builds the shared-location marker for a person's live location.
-  Set<Marker> _buildSharedLocationMarker() {
-    if (!_isViewingSharedLocation ||
-        widget.initialLat == null ||
-        widget.initialLon == null) {
-      return const {};
+  /// Builds the shared-location markers for people sharing with the user.
+  Set<Marker> _buildSharedLocationMarkers() {
+    final sharingState = ref.watch(sharingProvider);
+    final sharedWithMe = sharingState.sharedWithMe;
+    
+    final markers = <Marker>{};
+
+    // 1. Add markers from the live "Shared With Me" list
+    for (final loc in sharedWithMe) {
+      if (loc.latitude != null && loc.longitude != null) {
+        final markerId = MarkerId('live_${loc.sharerId}');
+        markers.add(
+          Marker(
+            markerId: markerId,
+            position: LatLng(loc.latitude!, loc.longitude!),
+            infoWindow: InfoWindow(
+              title: loc.sharerName,
+              snippet: loc.lastPingAt != null ? 'Live tracking active' : 'Offline',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+            onTap: () => _controller?.showMarkerInfoWindow(markerId),
+          ),
+        );
+      }
     }
 
-    final markerId = MarkerId(_nextMarkerId('shared'));
+    // 2. Add marker from deep-link/parameters if not already in the live list
+    if (_isViewingSharedLocation &&
+        widget.initialLat != null &&
+        widget.initialLon != null) {
+      
+      final deepLinkSharerExists = sharedWithMe.any((s) => s.sharerName == widget.sharedPersonName);
+      
+      if (!deepLinkSharerExists) {
+        final markerId = const MarkerId('param_shared');
+        markers.add(
+          Marker(
+            markerId: markerId,
+            position: LatLng(widget.initialLat!, widget.initialLon!),
+            infoWindow: InfoWindow(title: widget.sharedPersonName),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+            onTap: () => _controller?.showMarkerInfoWindow(markerId),
+          ),
+        );
+      }
+    }
 
-    return {
-      Marker(
-        markerId: markerId,
-        position: LatLng(widget.initialLat!, widget.initialLon!),
-        infoWindow: InfoWindow(title: widget.sharedPersonName),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        consumeTapEvents: true,
-        onTap: () {
-          _controller?.showMarkerInfoWindow(markerId);
-        },
-      ),
-    };
+    return markers;
   }
 
   /// Builds the route polyline and destination marker.
@@ -559,7 +598,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             markers: {
-              ..._buildSharedLocationMarker(),
+              ..._buildSharedLocationMarkers(),
               ..._buildRouteMarkers(),
             },
             polylines: _buildRoutePolylines(),
