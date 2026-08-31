@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/auth/data/repositories/supabase_auth_repository.dart';
 import 'package:frontend/features/auth/domain/auth_user.dart';
@@ -61,6 +60,41 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
         password: password,
       );
       return user;
+    });
+  }
+
+  /// Sends a password reset OTP to the specified [email].
+  Future<void> sendPasswordResetOtp(String email) async {
+    await _repository.sendPasswordResetOtp(email: email);
+  }
+
+  /// Verifies the password reset OTP code.
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String token,
+  }) async {
+    await _repository.verifyPasswordResetOtp(email: email, token: token);
+  }
+
+  /// Updates the authenticated user's password.
+  Future<void> updatePassword(String newPassword) async {
+    await _repository.updatePassword(newPassword: newPassword);
+  }
+
+  /// Updates user profile details in the database and active session state.
+  Future<void> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? password,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final updatedUser = await _repository.updateProfile(
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        password: password,
+      );
+      return updatedUser;
     });
   }
 

@@ -85,7 +85,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       }
 
       if (mounted) {
-        context.go('/check_email', extra: email);
+        CommuterToast.show(
+          context,
+          message: 'Account created successfully! Please sign in.',
+          icon: Icons.check_circle_outline,
+        );
+        context.go('/login');
       }
     } catch (e) {
       if (mounted) {

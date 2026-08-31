@@ -105,11 +105,17 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/verify_code',
-      builder: (context, state) => const VerifyCodePage(),
+      builder: (context, state) {
+        final email = state.extra as String?;
+        return VerifyCodePage(email: email);
+      },
     ),
     GoRoute(
       path: '/reset_password',
-      builder: (context, state) => const ResetPasswordPage(),
+      builder: (context, state) {
+        final email = state.extra as String?;
+        return ResetPasswordPage(email: email);
+      },
     ),
     GoRoute(
       path: '/settings',
