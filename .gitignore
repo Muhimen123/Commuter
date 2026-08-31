@@ -50,6 +50,7 @@ frontend/android/app/release
 
 # For Agents 
 .agents/
+.claude/
 skills-lock.json
 TASKS.md
 .artifacts/

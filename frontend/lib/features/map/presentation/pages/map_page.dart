@@ -555,7 +555,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             onMapCreated: _onMapCreated,
             onCameraMove: _onCameraMove,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
+            myLocationButtonEnabled: false,
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             markers: {
