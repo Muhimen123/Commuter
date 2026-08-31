@@ -351,6 +351,7 @@ class _MapPageState extends ConsumerState<MapPage> {
       destinationLongitude: dest?.lon,
       routePolyline: _routePolyline,
       distanceKm: _routeDistanceKm,
+      routePoints: _routePoints,
     );
 
     if (!mounted) return;
