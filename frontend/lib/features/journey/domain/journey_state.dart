@@ -16,6 +16,11 @@ class JourneyState {
   /// instead of real GPS. Null when simulation isn't active.
   final LatLng? simulatedPosition;
 
+  /// One-shot flag set when the [RideSimulator] reaches the end of the
+  /// route. UI should show a notice and call
+  /// `JourneyNotifier.acknowledgeSimulationComplete()` to clear it.
+  final bool simulationReachedDestination;
+
   const JourneyState({
     this.activeJourney,
     this.isResuming = false,
@@ -26,6 +31,7 @@ class JourneyState {
     this.isSubmittingSurvey = false,
     this.error,
     this.simulatedPosition,
+    this.simulationReachedDestination = false,
   });
 
   bool get hasActiveJourney => activeJourney?.isActive ?? false;
@@ -43,6 +49,7 @@ class JourneyState {
     bool clearError = false,
     LatLng? simulatedPosition,
     bool clearSimulatedPosition = false,
+    bool? simulationReachedDestination,
   }) {
     return JourneyState(
       activeJourney: activeJourney ?? this.activeJourney,
@@ -56,6 +63,8 @@ class JourneyState {
       simulatedPosition: clearSimulatedPosition
           ? null
           : (simulatedPosition ?? this.simulatedPosition),
+      simulationReachedDestination:
+          simulationReachedDestination ?? this.simulationReachedDestination,
     );
   }
 }

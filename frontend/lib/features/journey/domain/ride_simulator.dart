@@ -16,7 +16,7 @@ class RideSimulator {
   RideSimulator({
     required List<LatLng> route,
     this.speedKmh = 32,
-    this.tickInterval = const Duration(seconds: 2),
+    this.tickInterval = const Duration(milliseconds: 300),
     this.onComplete,
   })  : assert(route.length >= 2, 'RideSimulator needs at least 2 route points'),
         _route = route,

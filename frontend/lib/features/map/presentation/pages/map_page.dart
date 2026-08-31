@@ -139,8 +139,13 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   /// Keeps the camera centered on the simulated position as it moves,
   /// without resetting the user's current zoom level.
+  ///
+  /// Uses [GoogleMapController.moveCamera] (instant reposition) rather than
+  /// `animateCamera`: the simulator ticks every 300ms, and animateCamera's
+  /// own ~300ms easing would queue up and fight itself at that rate,
+  /// producing visible jitter instead of a smooth glide.
   Future<void> _followSimulatedPosition(LatLng position) async {
-    await _controller?.animateCamera(CameraUpdate.newLatLng(position));
+    await _controller?.moveCamera(CameraUpdate.newLatLng(position));
   }
 
   Future<void> _centerMapOnUser() async {
@@ -565,6 +570,19 @@ class _MapPageState extends ConsumerState<MapPage> {
       journeyProvider.select((s) => s.simulatedPosition),
       (previous, next) {
         if (next != null) _followSimulatedPosition(next);
+      },
+    );
+
+    ref.listen<bool>(
+      journeyProvider.select((s) => s.simulationReachedDestination),
+      (previous, reached) {
+        if (!reached) return;
+        CommuterToast.show(
+          context,
+          message: 'Simulated ride reached the destination.',
+          icon: Icons.flag_circle_rounded,
+        );
+        ref.read(journeyProvider.notifier).acknowledgeSimulationComplete();
       },
     );
 

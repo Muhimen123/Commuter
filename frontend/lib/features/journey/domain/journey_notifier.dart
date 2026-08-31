@@ -267,13 +267,24 @@ class JourneyNotifier extends Notifier<JourneyState> {
     }
     if (_simulator != null) return; // already simulating this route
 
-    final simulator = RideSimulator(route: _routePoints!);
+    final simulator = RideSimulator(
+      route: _routePoints!,
+      onComplete: () =>
+          state = state.copyWith(simulationReachedDestination: true),
+    );
     simulator.position.addListener(() {
       state = state.copyWith(simulatedPosition: simulator.position.value);
     });
     _simulator = simulator;
     state = state.copyWith(simulatedPosition: simulator.position.value);
     simulator.start();
+  }
+
+  /// Clears the one-shot [JourneyState.simulationReachedDestination] flag
+  /// after the UI has shown its notice.
+  void acknowledgeSimulationComplete() {
+    if (!state.simulationReachedDestination) return;
+    state = state.copyWith(simulationReachedDestination: false);
   }
 
   void _stopSimulator() {
