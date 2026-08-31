@@ -8,12 +8,10 @@ class AddContactDialog extends StatefulWidget {
 }
 
 class _AddContactDialogState extends State<AddContactDialog> {
-  final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -21,27 +19,25 @@ class _AddContactDialogState extends State<AddContactDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add New Contact'),
+      title: const Text('Add Guardian'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            controller: _nameController,
-            keyboardType: TextInputType.name,
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'John Doe',
-              prefixIcon: Icon(Icons.person),
-            ),
+          const Text(
+            'Enter the phone number of the person you want to add. They will receive an invite to become mutual guardians.',
+            style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _phoneController,
+            autofocus: true,
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
               labelText: 'Phone Number',
-              hintText: '+1 234 567 890',
+              hintText: '01XXXXXXXXX',
               prefixIcon: Icon(Icons.phone),
+              border: OutlineInputBorder(),
             ),
           ),
         ],
@@ -53,14 +49,11 @@ class _AddContactDialogState extends State<AddContactDialog> {
         ),
         FilledButton(
           onPressed: () {
-            if (_nameController.text.isNotEmpty && _phoneController.text.isNotEmpty) {
-              Navigator.pop(context, {
-                'name': _nameController.text,
-                'phone': _phoneController.text,
-              });
+            if (_phoneController.text.isNotEmpty) {
+              Navigator.pop(context, _phoneController.text);
             }
           },
-          child: const Text('Add'),
+          child: const Text('Send Invite'),
         ),
       ],
     );
