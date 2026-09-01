@@ -69,6 +69,55 @@ class FakeAuthRepository implements AuthRepository {
     _authChangesController.add(null);
   }
 
+  @override
+  Future<void> sendPasswordResetOtp({required String email}) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    if (email == 'nonexistent@example.com') {
+      throw Exception('No account found with this email address.');
+    }
+  }
+
+  @override
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String token,
+  }) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    if (token != '123456') {
+      throw Exception('Invalid verification code');
+    }
+  }
+
+  @override
+  Future<void> updatePassword({required String newPassword}) async {
+    if (errorToThrow != null) throw errorToThrow!;
+  }
+
+  @override
+  Future<AuthUser> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? password,
+  }) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    final base = currentUser ??
+        AuthUser(
+          id: 'test-user-123',
+          fullName: 'Original Name',
+          email: 'test@example.com',
+          phoneNumber: '+880 1401234567',
+          createdAt: DateTime.utc(2025, 1, 1),
+          updatedAt: DateTime.utc(2025, 1, 1),
+        );
+    final updated = base.copyWith(
+      fullName: fullName,
+      phoneNumber: phoneNumber ?? base.phoneNumber,
+    );
+    currentUser = updated;
+    _authChangesController.add(updated);
+    return updated;
+  }
+
   void dispose() {
     _authChangesController.close();
   }
@@ -185,6 +234,67 @@ void main() {
       final state = container.read(authProvider);
       expect(state.hasError, isTrue);
       expect(state.error.toString(), contains('Invalid credentials'));
+    });
+
+    test('sendPasswordResetOtp calls repository and throws for unknown email', () async {
+      expect(
+        () => container
+            .read(authProvider.notifier)
+            .sendPasswordResetOtp('test@example.com'),
+        returnsNormally,
+      );
+
+      expect(
+        () => container
+            .read(authProvider.notifier)
+            .sendPasswordResetOtp('nonexistent@example.com'),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('verifyPasswordResetOtp validates token and throws on invalid token', () async {
+      expect(
+        () => container.read(authProvider.notifier).verifyPasswordResetOtp(
+              email: 'test@example.com',
+              token: '123456',
+            ),
+        returnsNormally,
+      );
+
+      expect(
+        () => container.read(authProvider.notifier).verifyPasswordResetOtp(
+              email: 'test@example.com',
+              token: '000000',
+            ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('updatePassword calls repository', () async {
+      expect(
+        () => container
+            .read(authProvider.notifier)
+            .updatePassword('newPassword123'),
+        returnsNormally,
+      );
+    });
+
+    test('updateProfile updates user state and repository', () async {
+      await container.read(authProvider.notifier).signIn(
+            email: 'test@example.com',
+            password: 'password123',
+          );
+
+      await container.read(authProvider.notifier).updateProfile(
+            fullName: 'Sameen Abrar',
+            phoneNumber: '+880 1711122233',
+          );
+
+      final state = container.read(authProvider);
+      expect(state.hasValue, isTrue);
+      final user = state.value!;
+      expect(user.fullName, equals('Sameen Abrar'));
+      expect(user.phoneNumber, equals('+880 1711122233'));
     });
   });
 }

@@ -23,6 +23,25 @@ abstract class AuthRepository {
   /// Restores a previously saved session if it exists and has not been revoked.
   Future<AuthUser?> restoreSession();
 
+  /// Sends a password reset OTP to the provided [email].
+  Future<void> sendPasswordResetOtp({required String email});
+
+  /// Verifies the OTP code for password reset.
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String token,
+  });
+
+  /// Updates the user's password with [newPassword].
+  Future<void> updatePassword({required String newPassword});
+
+  /// Updates user profile details in the database and active session.
+  Future<AuthUser> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? password,
+  });
+
   /// Stream of authentication state changes.
   Stream<AuthUser?> get authStateChanges;
 }

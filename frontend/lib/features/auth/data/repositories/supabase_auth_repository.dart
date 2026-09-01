@@ -161,6 +161,131 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> sendPasswordResetOtp({required String email}) async {
+    final normalizedEmail = email.trim().toLowerCase();
+
+    // Verify the account exists in public.users before triggering OTP
+    try {
+      final userRow = await _client
+          .from('users')
+          .select('id')
+          .ilike('email', normalizedEmail)
+          .maybeSingle();
+
+      if (userRow == null) {
+        throw const AuthException(
+          'No account found with this email address.',
+        );
+      }
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      if (e is AuthException) rethrow;
+      debugPrint('Error checking user existence in DB: $e');
+    }
+
+    await _client.auth.resetPasswordForEmail(normalizedEmail);
+  }
+
+  @override
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String token,
+  }) async {
+    final response = await _client.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.recovery,
+    );
+    if (response.session == null && response.user == null) {
+      throw const AuthException('Verification failed: Invalid or expired code.');
+    }
+  }
+
+  @override
+  Future<void> updatePassword({required String newPassword}) async {
+    await _client.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+    try {
+      await _client.auth.signOut();
+    } catch (_) {}
+    await _clearLocalStorage();
+  }
+
+  @override
+  Future<AuthUser> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? password,
+  }) async {
+    final currentSession = _client.auth.currentSession;
+    final currentUser = _client.auth.currentUser;
+    final userId = currentUser?.id ?? currentSession?.user.id;
+
+    if (userId == null) {
+      throw const AuthException('No logged-in user found.');
+    }
+
+    final trimmedName = fullName.trim();
+    if (trimmedName.isEmpty) {
+      throw const AuthException('Name cannot be empty.');
+    }
+
+    final nowUtc = DateTime.now().toUtc();
+    final dbUpdateData = <String, dynamic>{
+      'full_name': trimmedName,
+      'updated_at': nowUtc.toIso8601String(),
+    };
+
+    final metadataUpdate = <String, dynamic>{
+      'full_name': trimmedName,
+    };
+
+    if (phoneNumber != null) {
+      final trimmedPhone = phoneNumber.trim();
+      dbUpdateData['phone_number'] = trimmedPhone;
+      metadataUpdate['phone_number'] = trimmedPhone;
+    }
+
+    // 1. Update public.users table in Supabase PostgreSQL
+    try {
+      await _client.from('users').update(dbUpdateData).eq('id', userId);
+    } catch (e) {
+      debugPrint('Error updating public.users table: $e');
+    }
+
+    // 2. Update Supabase Auth user metadata & password (if provided)
+    final userAttrs = UserAttributes(
+      data: metadataUpdate,
+      password: password != null && password.isNotEmpty ? password : null,
+    );
+    await _client.auth.updateUser(userAttrs);
+
+    // 3. Fetch fresh user row from DB or build updated AuthUser
+    AuthUser? updatedUser = await _fetchUserFromDb(userId);
+    if (updatedUser == null) {
+      final email = currentUser?.email ?? '';
+      final phone = phoneNumber ??
+          (currentUser?.userMetadata?['phone_number'] ?? '') as String;
+      updatedUser = AuthUser(
+        id: userId,
+        fullName: trimmedName,
+        email: email,
+        phoneNumber: phone,
+        createdAt: nowUtc,
+        updatedAt: nowUtc,
+      );
+    }
+
+    // 4. Update secure storage
+    final sessionToken = await _storage.read(key: _kSessionTokenKey) ?? '';
+    await _persist(updatedUser, sessionToken);
+
+    return updatedUser;
+  }
+
+  @override
   Future<AuthUser?> restoreSession() async {
     try {
       // First clean up any leftover dummy user artifact from secure storage

@@ -63,6 +63,41 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
     });
   }
 
+  /// Sends a password reset OTP to the specified [email].
+  Future<void> sendPasswordResetOtp(String email) async {
+    await _repository.sendPasswordResetOtp(email: email);
+  }
+
+  /// Verifies the password reset OTP code.
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String token,
+  }) async {
+    await _repository.verifyPasswordResetOtp(email: email, token: token);
+  }
+
+  /// Updates the authenticated user's password.
+  Future<void> updatePassword(String newPassword) async {
+    await _repository.updatePassword(newPassword: newPassword);
+  }
+
+  /// Updates user profile details in the database and active session state.
+  Future<void> updateProfile({
+    required String fullName,
+    String? phoneNumber,
+    String? password,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final updatedUser = await _repository.updateProfile(
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        password: password,
+      );
+      return updatedUser;
+    });
+  }
+
   /// Clears the current session (signs the user out and revokes active device session).
   Future<void> signOut() async {
     state = const AsyncLoading();

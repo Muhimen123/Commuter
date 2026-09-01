@@ -126,3 +126,46 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO public.user_settings (user_id)
 SELECT id FROM auth.users
 ON CONFLICT (user_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 6. Automatic Trigger: Delete public.users when auth.users is deleted
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_auth_user_deleted()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  DELETE FROM public.users WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_deleted ON auth.users;
+CREATE TRIGGER on_auth_user_deleted
+  AFTER DELETE ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_auth_user_deleted();
+
+-- ---------------------------------------------------------------------
+-- 7. Automatic Trigger: Delete auth.users when public.users is deleted
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_public_user_deleted()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  DELETE FROM auth.users WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_public_user_deleted ON public.users;
+CREATE TRIGGER on_public_user_deleted
+  AFTER DELETE ON public.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_public_user_deleted();
+
