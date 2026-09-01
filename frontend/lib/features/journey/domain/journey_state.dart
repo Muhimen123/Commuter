@@ -1,3 +1,5 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'entities/journey.dart';
 
 class JourneyState {
@@ -10,6 +12,15 @@ class JourneyState {
   final bool isSubmittingSurvey;
   final String? error;
 
+  /// Set while a [RideSimulator] is driving this journey's location pings
+  /// instead of real GPS. Null when simulation isn't active.
+  final LatLng? simulatedPosition;
+
+  /// One-shot flag set when the [RideSimulator] reaches the end of the
+  /// route. UI should show a notice and call
+  /// `JourneyNotifier.acknowledgeSimulationComplete()` to clear it.
+  final bool simulationReachedDestination;
+
   const JourneyState({
     this.activeJourney,
     this.isResuming = false,
@@ -19,9 +30,12 @@ class JourneyState {
     this.isCancelling = false,
     this.isSubmittingSurvey = false,
     this.error,
+    this.simulatedPosition,
+    this.simulationReachedDestination = false,
   });
 
   bool get hasActiveJourney => activeJourney?.isActive ?? false;
+  bool get isSimulating => simulatedPosition != null;
 
   JourneyState copyWith({
     Journey? activeJourney,
@@ -33,6 +47,9 @@ class JourneyState {
     bool? isSubmittingSurvey,
     String? error,
     bool clearError = false,
+    LatLng? simulatedPosition,
+    bool clearSimulatedPosition = false,
+    bool? simulationReachedDestination,
   }) {
     return JourneyState(
       activeJourney: activeJourney ?? this.activeJourney,
@@ -43,6 +60,11 @@ class JourneyState {
       isCancelling: isCancelling ?? this.isCancelling,
       isSubmittingSurvey: isSubmittingSurvey ?? this.isSubmittingSurvey,
       error: clearError ? null : (error ?? this.error),
+      simulatedPosition: clearSimulatedPosition
+          ? null
+          : (simulatedPosition ?? this.simulatedPosition),
+      simulationReachedDestination:
+          simulationReachedDestination ?? this.simulationReachedDestination,
     );
   }
 }

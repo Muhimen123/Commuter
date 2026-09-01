@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
+class _SplashPageState extends ConsumerState<SplashPage>
+    with TickerProviderStateMixin {
   bool _isAtCenter = false;
   bool _isExiting = false;
 
@@ -191,6 +194,12 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _autoNavigateIfSignedIn() async {
+    final authUser = await ref.read(authProvider.future);
+    if (!mounted || _isExiting || authUser == null) return;
+    _handleNavigation('/');
+  }
+
   Widget _buildAnimatedBus() {
     return Animate(
       onComplete: (controller) {
@@ -198,6 +207,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           setState(() {
             _isAtCenter = true;
           });
+          _autoNavigateIfSignedIn();
         }
       },
       effects: [

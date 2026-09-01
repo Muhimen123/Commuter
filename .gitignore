@@ -13,6 +13,7 @@
 migrate_working_dir/
 .idea
 .vscode
+.env
 
 
 # IntelliJ related
@@ -50,6 +51,7 @@ frontend/android/app/release
 
 # For Agents 
 .agents/
+.claude/
 skills-lock.json
 TASKS.md
 .artifacts/

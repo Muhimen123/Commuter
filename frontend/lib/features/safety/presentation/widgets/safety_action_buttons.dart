@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/features/safety/domain/safety_notifier.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
-class SafetyActionButtons extends StatelessWidget {
+class SafetyActionButtons extends ConsumerWidget {
   const SafetyActionButtons({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -71,14 +73,14 @@ class SafetyActionButtons extends StatelessWidget {
   }
 }
 
-class _SOSModal extends StatefulWidget {
+class _SOSModal extends ConsumerStatefulWidget {
   const _SOSModal();
 
   @override
-  State<_SOSModal> createState() => _SOSModalState();
+  ConsumerState<_SOSModal> createState() => _SOSModalState();
 }
 
-class _SOSModalState extends State<_SOSModal> {
+class _SOSModalState extends ConsumerState<_SOSModal> {
   double _progress = 0.0;
   Timer? _timer;
   bool _isTriggered = false;
@@ -103,15 +105,21 @@ class _SOSModalState extends State<_SOSModal> {
     });
   }
 
-  void _triggerSOS() {
+  Future<void> _triggerSOS() async {
     if (_isTriggered) return;
     _isTriggered = true;
-    Navigator.of(context).pop();
-    CommuterToast.show(
-      context,
-      message: 'Emergency Alert Sent to Trusted Contacts!',
-      icon: Icons.emergency_share_rounded,
-    );
+    
+    // Call the real SOS logic via Riverpod
+    await ref.read(safetyAlertProvider.notifier).triggerSOS();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+      CommuterToast.show(
+        context,
+        message: 'Emergency Alert Sent to Trusted Contacts!',
+        icon: Icons.emergency_share_rounded,
+      );
+    }
   }
 
   @override

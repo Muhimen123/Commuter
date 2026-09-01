@@ -130,7 +130,6 @@ class SupabaseAuthRepository implements AuthRepository {
     final sessionToken = await _storage.read(key: _kSessionTokenKey);
     final userId = _client.auth.currentUser?.id;
 
-    // Revoke the session in auth_sessions table
     if (sessionToken != null || userId != null) {
       try {
         final nowIso = DateTime.now().toUtc().toIso8601String();
@@ -139,7 +138,8 @@ class SupabaseAuthRepository implements AuthRepository {
               .from('auth_sessions')
               .update({'revoked_at': nowIso})
               .eq('refresh_token', sessionToken);
-        } else if (userId != null) {
+        }
+        if (userId != null) {
           await _client
               .from('auth_sessions')
               .update({'revoked_at': nowIso})

@@ -7,6 +7,11 @@ A new Flutter project.
 flutter run --dart-define-from-file=.env
 ```
 
+## Build an APK
+```
+flutter build apk --dart-define-from-file=.env
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
