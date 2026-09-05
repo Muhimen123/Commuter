@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -108,11 +110,16 @@ class BusProfilePage extends ConsumerWidget {
                             : const LatLng(23.7770, 90.3860),
                         zoom: 11.5,
                       ),
-                      zoomGesturesEnabled: false,
-                      scrollGesturesEnabled: false,
-                      rotateGesturesEnabled: false,
-                      tiltGesturesEnabled: false,
+                      zoomGesturesEnabled: true,
+                      scrollGesturesEnabled: true,
+                      rotateGesturesEnabled: true,
+                      tiltGesturesEnabled: true,
                       myLocationEnabled: false,
+                      gestureRecognizers: {
+                        Factory<OneSequenceGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                        ),
+                      },
                       polylines: routePoints.length < 2
                           ? const {}
                           : {
