@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:frontend/features/ride_discovery/presentation/widgets/mode_badge.dart';
 import 'package:go_router/go_router.dart';
 
 class RideCard extends StatelessWidget {
@@ -45,6 +46,13 @@ class RideCard extends StatelessWidget {
                           color: colorScheme.onSurface,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.xs),
+                      ModeBadge(
+                        mode: ride.transitMode,
+                        lineCode: ride.lineCode,
+                        lineColor: ride.lineColor,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         'via ${ride.via}',
                         style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),

@@ -89,3 +89,49 @@ INSERT INTO route_stops (route_id, stop_name, latitude, longitude, sequence_orde
 ('22222222-2222-2222-2222-222222222222', 'Bhairab Bazar',24.053000, 90.973000, 2, NULL),
 ('22222222-2222-2222-2222-222222222222', 'Ashuganj',     24.045000, 91.008000, 3, NULL),
 ('22222222-2222-2222-2222-222222222222', 'Sylhet',       24.897400, 91.868000, 4, '1');
+
+-- ============================================================
+-- BUS: sample Dhaka bus routes (transit_mode defaults to 'bus')
+-- Fictional operators/routes, styled like the existing mock data
+-- (Turag Transport, Mirpur Link, etc.) — not sourced from a real registry.
+-- ============================================================
+
+INSERT INTO routes (
+    id, route_number, route_name, average_fare, safety_score,
+    start_point_name, start_latitude, start_longitude,
+    end_point_name, end_latitude, end_longitude,
+    current_status, transit_mode
+) VALUES
+(
+    '33333333-3333-3333-3333-333333333331',
+    '42', 'Turag Transport', 35.00, 4.90,
+    'Uttara', 23.868000, 90.399000,
+    'Motijheel', 23.733300, 90.417200,
+    'scheduled', 'bus'
+),
+(
+    '33333333-3333-3333-3333-333333333332',
+    '15', 'Mirpur Link', 25.00, 4.60,
+    'Mirpur 10', 23.806400, 90.368800,
+    'Kakrail', 23.737800, 90.408500,
+    'scheduled', 'bus'
+),
+(
+    '33333333-3333-3333-3333-333333333333',
+    '88', 'Balaka Paribahan', 40.00, 4.95,
+    'Badda', 23.780900, 90.426700,
+    'Gulshan 1', 23.780800, 90.416300,
+    'delayed', 'bus'
+);
+
+INSERT INTO route_stops (route_id, stop_name, latitude, longitude, sequence_order) VALUES
+('33333333-3333-3333-3333-333333333331', 'Uttara',    23.868000, 90.399000, 1),
+('33333333-3333-3333-3333-333333333331', 'Farmgate',  23.756600, 90.389800, 2),
+('33333333-3333-3333-3333-333333333331', 'Motijheel', 23.733300, 90.417200, 3),
+
+('33333333-3333-3333-3333-333333333332', 'Mirpur 10', 23.806400, 90.368800, 1),
+('33333333-3333-3333-3333-333333333332', 'Kazipara',  23.798500, 90.371200, 2),
+('33333333-3333-3333-3333-333333333332', 'Kakrail',   23.737800, 90.408500, 3),
+
+('33333333-3333-3333-3333-333333333333', 'Badda',     23.780900, 90.426700, 1),
+('33333333-3333-3333-3333-333333333333', 'Gulshan 1', 23.780800, 90.416300, 2);

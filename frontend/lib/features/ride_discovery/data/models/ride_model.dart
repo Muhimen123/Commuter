@@ -13,6 +13,9 @@ class RideModel extends Ride {
     required super.safetyScore,
     required super.fare,
     super.isRecommended,
+    super.transitMode,
+    super.lineCode,
+    super.lineColor,
   });
 
   factory RideModel.fromJson(Map<String, dynamic> json, {String? via}) {
@@ -27,6 +30,9 @@ class RideModel extends Ride {
       reviewCount: 0,
       safetyScore: _safetyScoreToPercent(json['safety_score'] as num?),
       fare: (json['average_fare'] as num?)?.toDouble() ?? 0,
+      transitMode: _transitModeFromString(json['transit_mode'] as String?),
+      lineCode: json['line_code'] as String?,
+      lineColor: json['line_color'] as String?,
     );
   }
 
@@ -34,6 +40,13 @@ class RideModel extends Ride {
     return RideStatus.values.firstWhere(
       (status) => status.name == _camelCase(value ?? ''),
       orElse: () => RideStatus.scheduled,
+    );
+  }
+
+  static TransitMode _transitModeFromString(String? value) {
+    return TransitMode.values.firstWhere(
+      (mode) => mode.name == value,
+      orElse: () => TransitMode.bus,
     );
   }
 

@@ -1,5 +1,7 @@
 enum RideStatus { scheduled, arriving, inTransit, delayed, cancelled }
 
+enum TransitMode { bus, metro, train }
+
 class Ride {
   final String id;
   final String routeNumber;
@@ -12,6 +14,9 @@ class Ride {
   final int safetyScore;
   final double fare;
   final bool isRecommended;
+  final TransitMode transitMode;
+  final String? lineCode;
+  final String? lineColor;
 
   const Ride({
     required this.id,
@@ -25,5 +30,8 @@ class Ride {
     required this.safetyScore,
     required this.fare,
     this.isRecommended = false,
+    this.transitMode = TransitMode.bus,
+    this.lineCode,
+    this.lineColor,
   });
 }
