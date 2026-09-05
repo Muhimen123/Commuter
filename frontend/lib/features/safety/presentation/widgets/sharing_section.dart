@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/features/safety/domain/sharing_notifier.dart';
-import 'package:frontend/features/safety/domain/entities/shared_location.dart';
 import 'package:frontend/features/profile/domain/trusted_contacts_notifier.dart';
 
 class SharingSection extends ConsumerWidget {
