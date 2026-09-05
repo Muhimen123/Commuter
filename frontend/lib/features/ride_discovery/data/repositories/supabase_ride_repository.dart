@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/ride.dart';
+import '../../domain/entities/route_stop.dart';
 import '../../domain/repositories/ride_repository.dart';
 import '../models/ride_model.dart';
+import '../models/route_stop_model.dart';
 
 final rideRepositoryProvider = Provider<RideRepository>((ref) {
   return SupabaseRideRepository();
@@ -44,6 +46,19 @@ class SupabaseRideRepository implements RideRepository {
 
     return routeRows
         .map((row) => RideModel.fromJson(row, via: viaByRouteId[row['id']]))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<RouteStop>> getRouteStops(String routeId) async {
+    final rows = await _client
+        .from(_stopsTable)
+        .select()
+        .eq('route_id', routeId)
+        .order('sequence_order', ascending: true);
+
+    return rows
+        .map((row) => RouteStopModel.fromJson(row))
         .toList(growable: false);
   }
 }

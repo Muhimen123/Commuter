@@ -17,6 +17,11 @@ class Ride {
   final TransitMode transitMode;
   final String? lineCode;
   final String? lineColor;
+  final double? startLatitude;
+  final double? startLongitude;
+  final double? endLatitude;
+  final double? endLongitude;
+  final String? routePolyline;
 
   const Ride({
     required this.id,
@@ -33,5 +38,10 @@ class Ride {
     this.transitMode = TransitMode.bus,
     this.lineCode,
     this.lineColor,
+    this.startLatitude,
+    this.startLongitude,
+    this.endLatitude,
+    this.endLongitude,
+    this.routePolyline,
   });
 }

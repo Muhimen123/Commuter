@@ -1,41 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:frontend/features/ride_discovery/domain/entities/route_stop.dart';
+import 'package:frontend/features/ride_discovery/domain/rides_provider.dart';
+import 'package:frontend/shared/utils/polyline_codec.dart';
 
-class BusProfilePage extends StatelessWidget {
+class BusProfilePage extends ConsumerWidget {
   final Ride ride;
 
   const BusProfilePage({super.key, required this.ride});
 
+  List<LatLng> _routePoints() {
+    if (ride.routePolyline != null && ride.routePolyline!.isNotEmpty) {
+      final decoded = decodePolyline(ride.routePolyline!);
+      if (decoded.length >= 2) return decoded;
+    }
+    if (ride.startLatitude != null &&
+        ride.startLongitude != null &&
+        ride.endLatitude != null &&
+        ride.endLongitude != null) {
+      return [
+        LatLng(ride.startLatitude!, ride.startLongitude!),
+        LatLng(ride.endLatitude!, ride.endLongitude!),
+      ];
+    }
+    return const [];
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Mock realistic route (polyline)
-    final List<LatLng> routePoints = [
-      const LatLng(23.7317, 90.4067), // Motijheel
-      const LatLng(23.7380, 90.4000), // Press Club area
-      const LatLng(23.7460, 90.3950), // Shahbag
-      const LatLng(23.7500, 90.3930), // Kawran Bazar
-      const LatLng(23.7570, 90.3900), // Farmgate
-      const LatLng(23.7800, 90.3800), // Agargaon
-      const LatLng(23.8050, 90.3700), // Mirpur 10 approach
-      const LatLng(23.8223, 90.3654), // Mirpur
-    ];
-
-    // Mock stoppage points
-    final List<String> stops = [
-      'Motijheel',
-      'Press Club',
-      'Shahbag',
-      'Kawran Bazar',
-      'Farmgate',
-      'Agargaon',
-      'Mirpur 10',
-    ];
+    final routePoints = _routePoints();
+    final stopsAsync = ref.watch(routeStopsProvider(ride.id));
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -101,8 +102,10 @@ class BusProfilePage extends StatelessWidget {
                       mapType: MapType.normal,
                       buildingsEnabled: false,
                       zoomControlsEnabled: false,
-                      initialCameraPosition: const CameraPosition(
-                        target: LatLng(23.7770, 90.3860),
+                      initialCameraPosition: CameraPosition(
+                        target: routePoints.isNotEmpty
+                            ? routePoints.first
+                            : const LatLng(23.7770, 90.3860),
                         zoom: 11.5,
                       ),
                       zoomGesturesEnabled: false,
@@ -110,30 +113,34 @@ class BusProfilePage extends StatelessWidget {
                       rotateGesturesEnabled: false,
                       tiltGesturesEnabled: false,
                       myLocationEnabled: false,
-                      polylines: {
-                        Polyline(
-                          polylineId: const PolylineId('bus_route'),
-                          points: routePoints,
-                          width: 4,
-                          color: colorScheme.primary,
-                        ),
-                      },
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId('start'),
-                          position: routePoints.first,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueBlue,
-                          ),
-                        ),
-                        Marker(
-                          markerId: const MarkerId('end'),
-                          position: routePoints.last,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueRed,
-                          ),
-                        ),
-                      },
+                      polylines: routePoints.length < 2
+                          ? const {}
+                          : {
+                              Polyline(
+                                polylineId: const PolylineId('bus_route'),
+                                points: routePoints,
+                                width: 4,
+                                color: colorScheme.primary,
+                              ),
+                            },
+                      markers: routePoints.isEmpty
+                          ? const {}
+                          : {
+                              Marker(
+                                markerId: const MarkerId('start'),
+                                position: routePoints.first,
+                                icon: BitmapDescriptor.defaultMarkerWithHue(
+                                  BitmapDescriptor.hueBlue,
+                                ),
+                              ),
+                              Marker(
+                                markerId: const MarkerId('end'),
+                                position: routePoints.last,
+                                icon: BitmapDescriptor.defaultMarkerWithHue(
+                                  BitmapDescriptor.hueRed,
+                                ),
+                              ),
+                            },
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -266,34 +273,16 @@ class BusProfilePage extends StatelessWidget {
                           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         children: [
-                          ListView.separated(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: stops.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final isFirst = index == 0;
-                              final isLast = index == stops.length - 1;
-                              return ListTile(
-                                leading: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      isFirst || isLast ? Icons.location_on : Icons.trip_origin,
-                                      color: isFirst ? colorScheme.primary : (isLast ? colorScheme.error : colorScheme.onSurfaceVariant),
-                                      size: isFirst || isLast ? 24 : 16,
-                                    ),
-                                  ],
-                                ),
-                                title: Text(
-                                  stops[index],
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    fontWeight: isFirst || isLast ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              );
-                            },
+                          stopsAsync.when(
+                            data: (stops) => _StopsList(stops: stops),
+                            loading: () => const Padding(
+                              padding: EdgeInsets.all(AppSpacing.lg),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                            error: (error, _) => Padding(
+                              padding: const EdgeInsets.all(AppSpacing.lg),
+                              child: Text('Could not load stops: $error'),
+                            ),
                           ),
                         ],
                       ),
@@ -402,6 +391,57 @@ class BusProfilePage extends StatelessWidget {
               ],
             );
           },
+        );
+      },
+    );
+  }
+}
+
+class _StopsList extends StatelessWidget {
+  final List<RouteStop> stops;
+
+  const _StopsList({required this.stops});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    if (stops.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(AppSpacing.lg),
+        child: Text('No stoppage points available.'),
+      );
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: stops.length,
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final isFirst = index == 0;
+        final isLast = index == stops.length - 1;
+        final stop = stops[index];
+        return ListTile(
+          leading: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isFirst || isLast ? Icons.location_on : Icons.trip_origin,
+                color: isFirst ? colorScheme.primary : (isLast ? colorScheme.error : colorScheme.onSurfaceVariant),
+                size: isFirst || isLast ? 24 : 16,
+              ),
+            ],
+          ),
+          title: Text(
+            stop.stopName,
+            style: textTheme.bodyLarge?.copyWith(
+              fontWeight: isFirst || isLast ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          subtitle: stop.platformNumber == null ? null : Text('Platform ${stop.platformNumber}'),
         );
       },
     );

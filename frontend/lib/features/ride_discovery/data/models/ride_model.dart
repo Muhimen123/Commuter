@@ -16,6 +16,11 @@ class RideModel extends Ride {
     super.transitMode,
     super.lineCode,
     super.lineColor,
+    super.startLatitude,
+    super.startLongitude,
+    super.endLatitude,
+    super.endLongitude,
+    super.routePolyline,
   });
 
   factory RideModel.fromJson(Map<String, dynamic> json, {String? via}) {
@@ -33,6 +38,11 @@ class RideModel extends Ride {
       transitMode: _transitModeFromString(json['transit_mode'] as String?),
       lineCode: json['line_code'] as String?,
       lineColor: json['line_color'] as String?,
+      startLatitude: (json['start_latitude'] as num?)?.toDouble(),
+      startLongitude: (json['start_longitude'] as num?)?.toDouble(),
+      endLatitude: (json['end_latitude'] as num?)?.toDouble(),
+      endLongitude: (json['end_longitude'] as num?)?.toDouble(),
+      routePolyline: json['route_polyline'] as String?,
     );
   }
 
