@@ -1,4 +1,4 @@
-enum RideStatus { arriving, scheduled, delayed }
+enum RideStatus { scheduled, arriving, inTransit, delayed, cancelled }
 
 class Ride {
   final String id;
