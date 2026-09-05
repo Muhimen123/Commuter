@@ -1,6 +1,7 @@
 class ProfileEntity {
   final String fullName;
   final String email;
+  final String? profilePhotoUrl;
   final String badgeTitle;
   final QuickStats quickStats;
   final TransitIntelligence transitIntelligence;
@@ -11,6 +12,7 @@ class ProfileEntity {
   const ProfileEntity({
     required this.fullName,
     required this.email,
+    this.profilePhotoUrl,
     required this.badgeTitle,
     required this.quickStats,
     required this.transitIntelligence,

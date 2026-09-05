@@ -30,11 +30,19 @@ class ProfileHeaderCard extends StatelessWidget {
           CircleAvatar(
             radius: 46,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
-            child: Icon(
-              Icons.person,
-              size: 52,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
+            backgroundImage: profile.profilePhotoUrl != null && profile.profilePhotoUrl!.isNotEmpty
+                ? NetworkImage(profile.profilePhotoUrl!)
+                : null,
+            child: (profile.profilePhotoUrl == null || profile.profilePhotoUrl!.isEmpty)
+                ? Text(
+                    _getInitials(profile.fullName),
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -107,5 +115,14 @@ class ProfileHeaderCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getInitials(String name) {
+    if (name.trim().isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
   }
 }

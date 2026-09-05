@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../domain/entities/profile_entity.dart';
-import '../../domain/repositories/profile_repository.dart';
-import '../../data/repositories/dummy_profile_repository.dart';
+import '../../domain/profile_providers.dart';
 import '../widgets/profile_header_card.dart';
 import '../widgets/quick_stats_row.dart';
 import '../widgets/profile_nav_card.dart';
@@ -24,34 +23,30 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
-  final ProfileRepository _repository = DummyProfileRepositoryImpl();
-  late Future<ProfileEntity> _profileFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _profileFuture = _repository.getProfileData();
-  }
-
   @override
   Widget build(BuildContext context) {
     final authUser = ref.watch(authProvider).valueOrNull;
+    final profileAsyncValue = ref.watch(profileProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
-        child: FutureBuilder<ProfileEntity>(
-          future: _profileFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting &&
-                !snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError || !snapshot.hasData) {
-              return const Center(child: Text('Unable to load profile'));
-            }
-
-            final baseProfile = snapshot.data!;
+        child: profileAsyncValue.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Unable to load profile\n$error'),
+                const SizedBox(height: AppSpacing.md),
+                ElevatedButton(
+                  onPressed: () => ref.refresh(profileProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+          data: (baseProfile) {
             final profile = authUser != null
                 ? ProfileEntity(
                     fullName: authUser.fullName.isNotEmpty
@@ -60,6 +55,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     email: authUser.email.isNotEmpty
                         ? authUser.email
                         : baseProfile.email,
+                    profilePhotoUrl: baseProfile.profilePhotoUrl,
                     badgeTitle: baseProfile.badgeTitle,
                     quickStats: baseProfile.quickStats,
                     transitIntelligence: baseProfile.transitIntelligence,
