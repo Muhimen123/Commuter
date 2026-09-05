@@ -154,13 +154,18 @@ class FinancialSpendingSection extends StatelessWidget {
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                route.routeName,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onSurface,
-                                    ),
+                              Expanded(
+                                child: Text(
+                                  route.routeName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                ),
                               ),
+                              const SizedBox(width: 4),
                               Text(
                                 '৳${route.fare.toStringAsFixed(2)}',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(

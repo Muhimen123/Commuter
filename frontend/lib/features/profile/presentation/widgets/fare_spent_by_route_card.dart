@@ -42,10 +42,12 @@ class FareSpentByRouteCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: 40,
+                  Expanded(
+                    flex: 3,
                     child: Text(
                       route.routeName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
@@ -54,6 +56,7 @@ class FareSpentByRouteCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
+                    flex: 5,
                     child: Stack(
                       children: [
                         Container(
