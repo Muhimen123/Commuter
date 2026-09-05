@@ -8,6 +8,7 @@ class DummyProfileRepositoryImpl implements ProfileRepository {
     return const ProfileEntity(
       fullName: 'Jane Doe',
       email: 'jane@example.com',
+      profilePhotoUrl: null,
       badgeTitle: 'Transit Pioneer',
       quickStats: QuickStats(
         totalRides: 342,
