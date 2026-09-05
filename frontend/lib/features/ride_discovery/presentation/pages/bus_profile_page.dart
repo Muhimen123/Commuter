@@ -15,10 +15,13 @@ class BusProfilePage extends ConsumerWidget {
 
   const BusProfilePage({super.key, required this.ride});
 
-  List<LatLng> _routePoints() {
+  List<LatLng> _routePoints(List<RouteStop> stops) {
     if (ride.routePolyline != null && ride.routePolyline!.isNotEmpty) {
       final decoded = decodePolyline(ride.routePolyline!);
       if (decoded.length >= 2) return decoded;
+    }
+    if (stops.length >= 2) {
+      return stops.map((stop) => LatLng(stop.latitude, stop.longitude)).toList();
     }
     if (ride.startLatitude != null &&
         ride.startLongitude != null &&
@@ -32,13 +35,51 @@ class BusProfilePage extends ConsumerWidget {
     return const [];
   }
 
+  Set<Marker> _markers(List<RouteStop> stops) {
+    if (stops.isNotEmpty) {
+      return {
+        for (final (index, stop) in stops.indexed)
+          Marker(
+            markerId: MarkerId(stop.id),
+            position: LatLng(stop.latitude, stop.longitude),
+            infoWindow: InfoWindow(title: stop.stopName),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              index == 0
+                  ? BitmapDescriptor.hueBlue
+                  : (index == stops.length - 1 ? BitmapDescriptor.hueRed : BitmapDescriptor.hueOrange),
+            ),
+          ),
+      };
+    }
+    if (ride.startLatitude != null &&
+        ride.startLongitude != null &&
+        ride.endLatitude != null &&
+        ride.endLongitude != null) {
+      return {
+        Marker(
+          markerId: const MarkerId('start'),
+          position: LatLng(ride.startLatitude!, ride.startLongitude!),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        ),
+        Marker(
+          markerId: const MarkerId('end'),
+          position: LatLng(ride.endLatitude!, ride.endLongitude!),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      };
+    }
+    return const {};
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final routePoints = _routePoints();
     final stopsAsync = ref.watch(routeStopsProvider(ride.id));
+    final stops = stopsAsync.valueOrNull ?? const <RouteStop>[];
+    final routePoints = _routePoints(stops);
+    final markers = _markers(stops);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -82,7 +123,7 @@ class BusProfilePage extends ConsumerWidget {
                 children: [
                   // Map Card
                   Container(
-                    height: 250,
+                    height: MediaQuery.sizeOf(context).height * 0.5,
                     width: double.infinity,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
@@ -130,24 +171,7 @@ class BusProfilePage extends ConsumerWidget {
                                 color: colorScheme.primary,
                               ),
                             },
-                      markers: routePoints.isEmpty
-                          ? const {}
-                          : {
-                              Marker(
-                                markerId: const MarkerId('start'),
-                                position: routePoints.first,
-                                icon: BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueBlue,
-                                ),
-                              ),
-                              Marker(
-                                markerId: const MarkerId('end'),
-                                position: routePoints.last,
-                                icon: BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueRed,
-                                ),
-                              ),
-                            },
+                      markers: markers,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
