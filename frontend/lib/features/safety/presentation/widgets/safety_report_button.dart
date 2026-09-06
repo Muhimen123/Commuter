@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 class SafetyReportButton extends StatelessWidget {
   const SafetyReportButton({super.key});
@@ -8,13 +8,9 @@ class SafetyReportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safetyColors = Theme.of(context).extension<SafetyColors>();
-    
+
     return ElevatedButton.icon(
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const IncidentReportPage()),
-        );
-      },
+      onPressed: () => context.push('/report'),
       icon: const Icon(Icons.report_problem_outlined, color: Colors.white),
       label: const Text('Area Survey'),
       style: ElevatedButton.styleFrom(

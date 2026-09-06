@@ -22,6 +22,7 @@ import 'package:frontend/features/profile/presentation/pages/settings_page.dart'
 import 'package:frontend/features/profile/presentation/pages/ride_history_page.dart';
 import 'package:frontend/features/profile/presentation/pages/trusted_contacts_page.dart';
 import 'package:frontend/features/safety/presentation/pages/safety_page.dart';
+import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -146,6 +147,11 @@ final GoRouter _router = GoRouter(
         state: state,
         child: const TrustedContactsPage(),
       ),
+    ),
+    GoRoute(
+      path: '/report',
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const IncidentReportPage()),
     ),
     GoRoute(
       path: '/bus_profile',
