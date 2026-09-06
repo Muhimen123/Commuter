@@ -477,9 +477,11 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: const Color(0xFFF0F1F5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+        ),
       ),
       child: child,
     );
@@ -601,7 +603,7 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
                 decoration: InputDecoration(
                   hintText: 'Add details (optional)...',
                   filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest,
+                  fillColor: const Color(0xFFF0F1F5),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
