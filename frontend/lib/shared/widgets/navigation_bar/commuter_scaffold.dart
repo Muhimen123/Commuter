@@ -5,6 +5,7 @@ import 'package:frontend/features/journey/domain/simulation_provider.dart';
 import 'package:frontend/features/journey/presentation/widgets/simulation_toggle_dialog.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import 'package:frontend/features/safety/domain/safety_notifier.dart';
+import 'commuter_nav_bar.dart';
 
 class CommuterScaffold extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -23,42 +24,10 @@ class CommuterScaffold extends ConsumerWidget {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: navigationShell,
-      bottomNavigationBar: Container(
-        color: Theme.of(context).colorScheme.surface,
-        height: 70,
-        child: NavigationBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) => _onTap(context, index),
-          indicatorShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          destinations: [
-            NavigationDestination(
-              icon: GestureDetector(
-                onLongPress: () => _onHomeLongPress(context, ref),
-                child: const Icon(Icons.home_outlined),
-              ),
-              selectedIcon: GestureDetector(
-                onLongPress: () => _onHomeLongPress(context, ref),
-                child: const Icon(Icons.home),
-              ),
-              label: 'Home',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.directions_bus),
-              label: 'Ride',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.shield_outlined),
-              label: 'Safety',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              label: 'Profile',
-            ),
-          ],
-        ),
+      bottomNavigationBar: CommuterNavBar(
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) => _onTap(context, index),
+        onHomeLongPress: () => _onHomeLongPress(context, ref),
       ),
     );
   }
