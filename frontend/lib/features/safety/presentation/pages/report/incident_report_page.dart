@@ -443,6 +443,7 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
             overallSafetyRating: _ratings['Overall Feeling of Safety'] ?? 3,
             notes: notes.isEmpty ? null : notes,
           );
+      ref.invalidate(incidentReportHistoryProvider);
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
