@@ -56,14 +56,14 @@ const List<_RatingCategory> _kRatingCategories = [
   _RatingCategory(
     Icons.report_outlined,
     'Harassment Frequency',
-    'Rarely happens',
     'Happens often',
+    'Rarely happens',
   ),
   _RatingCategory(
     Icons.shopping_bag_outlined,
     'Theft/Snatching Frequency',
-    'Rarely happens',
     'Happens often',
+    'Rarely happens',
   ),
   _RatingCategory(
     Icons.sentiment_satisfied_alt_outlined,
@@ -73,12 +73,12 @@ const List<_RatingCategory> _kRatingCategories = [
   ),
 ];
 
-const List<String> _kLevelLabels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+const List<String> _kLevelLabels = ['Poor', 'Fair', 'Moderate', 'Good', 'Excellent'];
 
 const List<Color> _kGradientColors = [
-  Color(0xFF3FC46D),
-  Color(0xFFF5B942),
-  Color(0xFFE9564C),
+  Color(0xFFE9564C), // Red (Unsafe)
+  Color(0xFFF5B942), // Yellow (Moderate)
+  Color(0xFF3FC46D), // Green (Safe)
 ];
 
 Color _colorForLevel(num value) {
