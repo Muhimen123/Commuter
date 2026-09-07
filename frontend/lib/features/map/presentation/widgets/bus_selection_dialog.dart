@@ -294,8 +294,11 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                           child: Row(
                             children: [
                               Container(
-                                width: 40,
                                 height: 40,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xs,
+                                ),
+                                constraints: const BoxConstraints(minWidth: 40),
                                 decoration: BoxDecoration(
                                   color: colorScheme.primaryContainer,
                                   borderRadius: BorderRadius.circular(
@@ -303,13 +306,27 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                                   ),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  bus.routeNumber,
-                                  style: Theme.of(context).textTheme.labelLarge
-                                      ?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.shield_rounded,
+                                      size: 14,
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${bus.safetyScore}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color:
+                                                colorScheme.onPrimaryContainer,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.sm),
@@ -318,7 +335,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      bus.routeName,
+                                      '${bus.routeNumber} - ${bus.routeName}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
