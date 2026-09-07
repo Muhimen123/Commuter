@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
+import 'package:frontend/features/auth/domain/auth_user.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -21,6 +22,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   late final AnimationController _wheelController;
 
+  late final Future<AuthUser?> _authCheckFuture;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
       duration: const Duration(milliseconds: 500),
     )..repeat();
     _checkLocationPermission();
+    _authCheckFuture = ref.read(authProvider.future);
   }
 
   Future<void> _checkLocationPermission() async {
@@ -195,7 +199,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
   }
 
   Future<void> _autoNavigateIfSignedIn() async {
-    final authUser = await ref.read(authProvider.future);
+    final authUser = await _authCheckFuture;
     if (!mounted || _isExiting || authUser == null) return;
     _handleNavigation('/');
   }
