@@ -1,89 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
+import 'package:frontend/features/ride_discovery/domain/rides_provider.dart';
 
-/// A dialog that lets the user select a bus from a dropdown list
-/// or type in a custom bus name manually.
-class BusSelectionDialog extends StatefulWidget {
-  const BusSelectionDialog({super.key});
+class BusSelectionResult {
+  final String busName;
+  final String? routeId;
 
-  @override
-  State<BusSelectionDialog> createState() => _BusSelectionDialogState();
+  const BusSelectionResult({required this.busName, this.routeId});
 }
 
-class _BusSelectionDialogState extends State<BusSelectionDialog> {
+class BusSelectionDialog extends ConsumerStatefulWidget {
+  /// Route id to preselect, e.g. the first ride of a chosen transit
+  /// itinerary — the commuter already picked it, so don't make them pick
+  /// again.
+  final String? initialRouteId;
+
+  const BusSelectionDialog({super.key, this.initialRouteId});
+
+  @override
+  ConsumerState<BusSelectionDialog> createState() => _BusSelectionDialogState();
+}
+
+class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String? _selectedBusName;
+  String? _selectedRouteId;
+  bool _appliedInitialSelection = false;
 
-  /// Sample bus data — in the future this will come from an API/backend.
-  static const List<Ride> _availableBuses = [
-    Ride(
-      id: '1',
-      routeNumber: '42',
-      routeName: 'Turag Transport',
-      destination: 'Motijheel',
-      via: 'Farmgate',
-      status: RideStatus.arriving,
-      rating: 4.8,
-      reviewCount: 128,
-      safetyScore: 98,
-      fare: 35.00,
-    ),
-    Ride(
-      id: '2',
-      routeNumber: '15',
-      routeName: 'Mirpur Link',
-      destination: 'Mirpur 10',
-      via: 'Kakrail',
-      status: RideStatus.scheduled,
-      rating: 4.5,
-      reviewCount: 84,
-      safetyScore: 92,
-      fare: 25.00,
-    ),
-    Ride(
-      id: '3',
-      routeNumber: '88',
-      routeName: 'Balaka Paribahan',
-      destination: 'Gulshan 1',
-      via: 'Badda',
-      status: RideStatus.delayed,
-      rating: 4.9,
-      reviewCount: 215,
-      safetyScore: 99,
-      fare: 40.00,
-    ),
-    Ride(
-      id: '4',
-      routeNumber: '7',
-      routeName: 'Bikalpa Auto',
-      destination: 'Azimpur',
-      via: 'Nilkhet',
-      status: RideStatus.arriving,
-      rating: 4.2,
-      reviewCount: 45,
-      safetyScore: 85,
-      fare: 15.00,
-    ),
-    Ride(
-      id: '5',
-      routeNumber: '9',
-      routeName: 'Salsabil',
-      destination: 'Jatrabari',
-      via: 'Sayedabad',
-      status: RideStatus.scheduled,
-      rating: 4.7,
-      reviewCount: 156,
-      safetyScore: 95,
-      fare: 30.00,
-    ),
-  ];
+  /// Applies [BusSelectionDialog.initialRouteId] once the rides have loaded.
+  /// A no-op after the first successful application, or if there is nothing
+  /// to preselect, or the commuter has already changed the selection.
+  void _applyInitialSelectionIfNeeded(List<Ride> rides) {
+    if (_appliedInitialSelection) return;
+    if (widget.initialRouteId == null) return;
+    if (_selectedRouteId != null) return;
 
-  List<Ride> get _filteredBuses {
+    Ride? match;
+    for (final ride in rides) {
+      if (ride.id == widget.initialRouteId) {
+        match = ride;
+        break;
+      }
+    }
+    if (match == null) return;
+
+    _appliedInitialSelection = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _onSuggestionSelected(match!);
+    });
+  }
+
+  List<Ride> _filteredBuses(List<Ride> buses) {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return _availableBuses;
-    return _availableBuses.where((bus) {
+    if (query.isEmpty) return buses;
+    return buses.where((bus) {
       return bus.routeNumber.toLowerCase().contains(query) ||
           bus.routeName.toLowerCase().contains(query) ||
           bus.destination.toLowerCase().contains(query);
@@ -100,7 +73,9 @@ class _BusSelectionDialogState extends State<BusSelectionDialog> {
 
   void _onSuggestionSelected(Ride bus) {
     setState(() {
-      _selectedBusName = '${bus.routeNumber} - ${bus.routeName} (${bus.destination} via ${bus.via})';
+      _selectedBusName =
+          '${bus.routeNumber} - ${bus.routeName} (${bus.destination} via ${bus.via})';
+      _selectedRouteId = bus.id;
       _searchController.text = _selectedBusName!;
     });
     _searchFocusNode.unfocus();
@@ -109,7 +84,12 @@ class _BusSelectionDialogState extends State<BusSelectionDialog> {
   void _onConfirm() {
     final busName = _displayLabel;
     if (busName.isEmpty) return;
-    Navigator.of(context).pop(busName);
+    // A custom-typed name (not matching the last-selected suggestion) has
+    // no backing route id.
+    final routeId = busName == _selectedBusName ? _selectedRouteId : null;
+    Navigator.of(
+      context,
+    ).pop(BusSelectionResult(busName: busName, routeId: routeId));
   }
 
   @override
@@ -122,6 +102,7 @@ class _BusSelectionDialogState extends State<BusSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final ridesAsync = ref.watch(ridesProvider);
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -139,219 +120,38 @@ class _BusSelectionDialogState extends State<BusSelectionDialog> {
             // Title
             Text(
               'Select Bus',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Choose a bus route or type in the bus name.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Searchable dropdown field
-            SizedBox(
-              height: AppSizing.inputFieldHeight,
-              child: Autocomplete<Ride>(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text.isEmpty) {
-                    return _availableBuses;
-                  }
-                  return _filteredBuses;
-                },
-                displayStringForOption: (Ride bus) =>
-                    '${bus.routeNumber} - ${bus.routeName}',
-                fieldViewBuilder: (
-                  BuildContext context,
-                  TextEditingController fieldController,
-                  FocusNode focusNode,
-                  VoidCallback onFieldSubmitted,
-                ) {
-                  // Sync the external controller with the autocomplete's
-                  // so we keep the typed/custom value accessible.
-                  _searchController.text = fieldController.text;
-
-                  return TextField(
-                    controller: fieldController,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Search bus route or type name…',
-                      prefixIcon: Icon(
-                        Icons.search_rounded,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      suffixIcon: fieldController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded),
-                              onPressed: () {
-                                fieldController.clear();
-                                setState(() {
-                                  _selectedBusName = null;
-                                });
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.medium),
-                        borderSide: BorderSide(
-                          color: colorScheme.outline,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.medium),
-                        borderSide: BorderSide(
-                          color: colorScheme.outline.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.medium),
-                        borderSide: BorderSide(
-                          color: colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                    ),
-                    onChanged: (_) {
-                      setState(() {
-                        _selectedBusName = null;
-                      });
-                    },
-                    onSubmitted: (_) {
-                      if (_filteredBuses.isNotEmpty) {
-                        _onSuggestionSelected(_filteredBuses.first);
-                      }
-                    },
-                  );
-                },
-                optionsViewBuilder: (
-                  BuildContext context,
-                  AutocompleteOnSelected<Ride> onSelected,
-                  Iterable<Ride> options,
-                ) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      constraints: const BoxConstraints(
-                        maxHeight: 220,
-                        maxWidth: double.infinity,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.small),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ListView.separated(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        itemCount: options.length,
-                        separatorBuilder: (_, _) => Divider(
-                          height: 1,
-                          indent: AppSpacing.md,
-                          endIndent: AppSpacing.md,
-                          color: colorScheme.outlineVariant,
-                        ),
-                        itemBuilder: (context, index) {
-                          final bus = options.elementAt(index);
-                          return InkWell(
-                            onTap: () => onSelected(bus),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primaryContainer,
-                                      borderRadius: BorderRadius.circular(
-                                        AppRadius.small,
-                                      ),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      bus.routeNumber,
-                                      style:
-                                          Theme.of(context)
-                                              .textTheme
-                                              .labelLarge
-                                              ?.copyWith(
-                                                color: colorScheme
-                                                    .onPrimaryContainer,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          bus.routeName,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                        Text(
-                                          '${bus.destination} via ${bus.via}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Icon(
-                                    Icons.directions_bus_rounded,
-                                    color: colorScheme.onSurfaceVariant,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-                onSelected: (Ride bus) => _onSuggestionSelected(bus),
+            // Searchable dropdown field, backed by real routes from the DB.
+            ridesAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Center(child: CircularProgressIndicator()),
               ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Text(
+                  'Could not load bus routes. You can still type a bus name below.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colorScheme.error),
+                ),
+              ),
+              data: (rides) {
+                _applyInitialSelectionIfNeeded(rides);
+                return _buildBusField(context, colorScheme, rides);
+              },
             ),
 
             const SizedBox(height: AppSpacing.lg),
@@ -388,6 +188,221 @@ class _BusSelectionDialogState extends State<BusSelectionDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBusField(
+    BuildContext context,
+    ColorScheme colorScheme,
+    List<Ride> rides,
+  ) {
+    return SizedBox(
+      height: AppSizing.inputFieldHeight,
+      child: Autocomplete<Ride>(
+        optionsBuilder: (TextEditingValue textEditingValue) {
+          if (textEditingValue.text.isEmpty) {
+            return rides;
+          }
+          return _filteredBuses(rides);
+        },
+        displayStringForOption: (Ride bus) =>
+            '${bus.routeNumber} - ${bus.routeName}',
+        fieldViewBuilder:
+            (
+              BuildContext context,
+              TextEditingController fieldController,
+              FocusNode focusNode,
+              VoidCallback onFieldSubmitted,
+            ) {
+              // Sync the external controller with the autocomplete's
+              // so we keep the typed/custom value accessible.
+              _searchController.text = fieldController.text;
+
+              return TextField(
+                controller: fieldController,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  hintText: 'Search bus route or type name…',
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  suffixIcon: fieldController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            fieldController.clear();
+                            setState(() {
+                              _selectedBusName = null;
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                    borderSide: BorderSide(color: colorScheme.outline),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                ),
+                onChanged: (_) {
+                  setState(() {
+                    _selectedBusName = null;
+                  });
+                },
+                onSubmitted: (_) {
+                  final matches = _filteredBuses(rides);
+                  if (matches.isNotEmpty) {
+                    _onSuggestionSelected(matches.first);
+                  }
+                },
+              );
+            },
+        optionsViewBuilder:
+            (
+              BuildContext context,
+              AutocompleteOnSelected<Ride> onSelected,
+              Iterable<Ride> options,
+            ) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  constraints: const BoxConstraints(
+                    maxHeight: 220,
+                    maxWidth: double.infinity,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                    border: Border.all(color: colorScheme.outlineVariant),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ListView.separated(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 1,
+                      indent: AppSpacing.md,
+                      endIndent: AppSpacing.md,
+                      color: colorScheme.outlineVariant,
+                    ),
+                    itemBuilder: (context, index) {
+                      final bus = options.elementAt(index);
+                      return InkWell(
+                        onTap: () => onSelected(bus),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                height: 40,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xs,
+                                ),
+                                constraints: const BoxConstraints(minWidth: 40),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.small,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.shield_rounded,
+                                      size: 14,
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${bus.safetyScore}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color:
+                                                colorScheme.onPrimaryContainer,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${bus.routeNumber} - ${bus.routeName}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                    Text(
+                                      '${bus.destination} via ${bus.via}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Icon(
+                                Icons.directions_bus_rounded,
+                                color: colorScheme.onSurfaceVariant,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+        onSelected: (Ride bus) => _onSuggestionSelected(bus),
       ),
     );
   }
