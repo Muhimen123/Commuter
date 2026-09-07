@@ -110,7 +110,7 @@ class BusProfilePage extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
