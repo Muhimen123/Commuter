@@ -361,19 +361,19 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
 
     if (!mounted) return;
-    final selectedBus = await showDialog<String>(
+    final selectedBus = await showDialog<BusSelectionResult>(
       context: context,
       builder: (context) => const BusSelectionDialog(),
     );
 
-    if (selectedBus == null || selectedBus.isEmpty) return;
+    if (selectedBus == null || selectedBus.busName.isEmpty) return;
     if (!mounted) return;
 
     final origin = _routeOrigin ?? _lastCameraCenter;
     final dest = _selectedDestination;
 
     await notifier.startJourney(
-      routeId: null, // routes table not yet populated
+      routeId: selectedBus.routeId,
       originLatitude: origin.latitude,
       originLongitude: origin.longitude,
       destinationName: dest?.name,
@@ -390,7 +390,7 @@ class _MapPageState extends ConsumerState<MapPage> {
     if (state.hasActiveJourney) {
       CommuterToast.show(
         context,
-        message: 'Journey started on $selectedBus! Live tracking active.',
+        message: 'Journey started on ${selectedBus.busName}! Live tracking active.',
         icon: Icons.navigation_rounded,
       );
     } else if (state.error != null) {
