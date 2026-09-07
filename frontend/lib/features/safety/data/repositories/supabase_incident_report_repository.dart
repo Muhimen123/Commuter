@@ -1,12 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import '../../domain/entities/incident_report.dart';
 import '../../domain/repositories/incident_report_repository.dart';
 import '../models/incident_report_model.dart';
 
+// Must match the dev user seeded in supabase/seed.sql — mirrors the same
+// placeholder used in incident_report_page.dart until real Supabase Auth
+// lands and every report reliably has a real user_id.
+const String _kDevUserId = '00000000-0000-0000-0000-000000000001';
+
 final incidentReportRepositoryProvider = Provider<IncidentReportRepository>((ref) {
   return SupabaseIncidentReportRepository();
+});
+
+/// The current user's own submitted incident reports, newest first.
+final incidentReportHistoryProvider =
+    FutureProvider.autoDispose<List<IncidentReport>>((ref) async {
+  final userId = ref.watch(authProvider).valueOrNull?.id ?? _kDevUserId;
+  return ref.read(incidentReportRepositoryProvider).getHistory(userId: userId);
 });
 
 class SupabaseIncidentReportRepository implements IncidentReportRepository {
@@ -49,5 +62,18 @@ class SupabaseIncidentReportRepository implements IncidentReportRepository {
 
     final row = await _client.from(_table).insert(payload).select().single();
     return IncidentReportModel.fromJson(row);
+  }
+
+  @override
+  Future<List<IncidentReport>> getHistory({required String userId}) async {
+    final rows = await _client
+        .from(_table)
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+
+    return rows
+        .map((row) => IncidentReportModel.fromJson(row))
+        .toList(growable: false);
   }
 }

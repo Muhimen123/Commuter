@@ -4,10 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
 import 'package:frontend/features/safety/data/repositories/supabase_incident_report_repository.dart';
+import 'package:frontend/shared/widgets/navigation_bar/commuter_nav_bar.dart';
+
+// Bottom nav destinations, in the same order/index as CommuterScaffold's
+// branches — this page sits outside the tab shell (see app.dart's top-level
+// '/report' route) so it navigates via GoRouter.go instead of goBranch.
+const List<String> _kTabPaths = ['/', '/planner', '/safety', '/profile'];
 
 // Must match the dev user seeded in supabase/seed.sql — mirrors the same
 // placeholder used in journey_notifier.dart until real Supabase Auth lands.
@@ -436,6 +443,7 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
             overallSafetyRating: _ratings['Overall Feeling of Safety'] ?? 3,
             notes: notes.isEmpty ? null : notes,
           );
+      ref.invalidate(incidentReportHistoryProvider);
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
@@ -469,9 +477,11 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFFF0F1F5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+        ),
       ),
       child: child,
     );
@@ -502,10 +512,11 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         title: const Text(
           'Report Condition',
@@ -516,6 +527,10 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+      ),
+      bottomNavigationBar: CommuterNavBar(
+        selectedIndex: 2,
+        onDestinationSelected: (index) => context.go(_kTabPaths[index]),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -588,7 +603,7 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
                 decoration: InputDecoration(
                   hintText: 'Add details (optional)...',
                   filled: true,
-                  fillColor: AppColors.surface,
+                  fillColor: const Color(0xFFF0F1F5),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
