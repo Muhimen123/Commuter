@@ -48,6 +48,14 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
       loadNotifications();
     }
 
+    // Heartbeat timer to keep the socket alive on Oppo/Realme/Xiaomi
+    Timer.periodic(const Duration(seconds: 40), (timer) {
+      if (_subscription != null && _subscription!.isJoined) {
+        // Just querying something small to keep the connection active
+        _supabase.from('notifications').select('id').limit(1);
+      }
+    });
+
     _ref.listen(authProvider, (previous, next) {
       final newUser = next.valueOrNull;
       if (newUser != null && newUser.id != previous?.valueOrNull?.id) {
@@ -100,10 +108,15 @@ class NotificationNotifier extends StateNotifier<NotificationState> with Widgets
             column: 'user_id',
             value: userId,
           ),
-          callback: (payload) {
+          callback: (payload) async {
             final newNotif = AppNotification.fromMap(payload.newRecord);
             
-            // Trigger system notification
+            // 1. SEND RECEIPT: Tell Supabase we received it immediately
+            _supabase.from('notifications')
+                .update({'received_at': DateTime.now().toIso8601String()})
+                .eq('id', newNotif.id);
+
+            // 2. Trigger system notification
             LocalNotificationService.showNotification(
               id: newNotif.hashCode,
               title: newNotif.title,

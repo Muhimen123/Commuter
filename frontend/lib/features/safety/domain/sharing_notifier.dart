@@ -47,6 +47,16 @@ class SharingNotifier extends StateNotifier<SharingState> {
     
     // Auto-refresh "Shared With Me" every 15 seconds for live updates
     _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => loadSharedWithMe());
+
+    // IMPORTANT: Start the background safety service whenever a user is logged in.
+    // This keeps the process (and WebSocket) alive for Guardians to receive alerts.
+    _ref.listen(authProvider, (previous, next) {
+      if (next.valueOrNull != null) {
+        _startLocationPings(); // Starts foreground service
+      } else {
+        _stopLocationPings();
+      }
+    }, fireImmediately: true);
   }
 
   Future<void> refresh() async {
@@ -146,9 +156,10 @@ class SharingNotifier extends StateNotifier<SharingState> {
       locationSettings: AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 10,
+        // This is the key: It starts a "Foreground Service" on Android
         foregroundNotificationConfig: ForegroundNotificationConfig(
-          notificationTitle: "Location Sharing Active",
-          notificationText: "Commuter is sharing your live location for your safety.",
+          notificationTitle: "Safety Monitor Active",
+          notificationText: "Commuter is protecting you and monitoring alerts in the background.",
           notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
           enableWakeLock: true,
         ),
