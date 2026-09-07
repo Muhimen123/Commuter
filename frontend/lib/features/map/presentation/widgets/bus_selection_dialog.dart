@@ -12,7 +12,12 @@ class BusSelectionResult {
 }
 
 class BusSelectionDialog extends ConsumerStatefulWidget {
-  const BusSelectionDialog({super.key});
+  /// Route id to preselect, e.g. the first ride of a chosen transit
+  /// itinerary — the commuter already picked it, so don't make them pick
+  /// again.
+  final String? initialRouteId;
+
+  const BusSelectionDialog({super.key, this.initialRouteId});
 
   @override
   ConsumerState<BusSelectionDialog> createState() => _BusSelectionDialogState();
@@ -23,6 +28,30 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
   final FocusNode _searchFocusNode = FocusNode();
   String? _selectedBusName;
   String? _selectedRouteId;
+  bool _appliedInitialSelection = false;
+
+  /// Applies [BusSelectionDialog.initialRouteId] once the rides have loaded.
+  /// A no-op after the first successful application, or if there is nothing
+  /// to preselect, or the commuter has already changed the selection.
+  void _applyInitialSelectionIfNeeded(List<Ride> rides) {
+    if (_appliedInitialSelection) return;
+    if (widget.initialRouteId == null) return;
+    if (_selectedRouteId != null) return;
+
+    Ride? match;
+    for (final ride in rides) {
+      if (ride.id == widget.initialRouteId) {
+        match = ride;
+        break;
+      }
+    }
+    if (match == null) return;
+
+    _appliedInitialSelection = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _onSuggestionSelected(match!);
+    });
+  }
 
   List<Ride> _filteredBuses(List<Ride> buses) {
     final query = _searchController.text.trim().toLowerCase();
@@ -119,7 +148,10 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                   ).textTheme.bodySmall?.copyWith(color: colorScheme.error),
                 ),
               ),
-              data: (rides) => _buildBusField(context, colorScheme, rides),
+              data: (rides) {
+                _applyInitialSelectionIfNeeded(rides);
+                return _buildBusField(context, colorScheme, rides);
+              },
             ),
 
             const SizedBox(height: AppSpacing.lg),

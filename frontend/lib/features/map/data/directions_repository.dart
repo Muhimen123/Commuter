@@ -20,8 +20,8 @@ class DirectionsResult {
 
 /// Google Directions API client.
 ///
-/// Fetches a driving route between two [LatLng] points and decodes the
-/// returned polyline into a [List<LatLng>].
+/// Fetches a route between two [LatLng] points and decodes the returned
+/// polyline into a [List<LatLng>].
 class DirectionsRepository {
   final http.Client _client;
 
@@ -32,7 +32,23 @@ class DirectionsRepository {
   /// Returns a [DirectionsResult] with the decoded polyline [points], the
   /// encoded [polyline] string, and the route [distanceKm]. On failure,
   /// returns a straight-line result with null polyline/distance.
-  Future<DirectionsResult> fetchRoute(LatLng start, LatLng end) async {
+  Future<DirectionsResult> fetchRoute(LatLng start, LatLng end) =>
+      _fetch(start, end, mode: 'driving');
+
+  /// Fetches a walking route from [start] to [end] via the Google Directions
+  /// API — follows actual footpaths/roads instead of a straight line, e.g.
+  /// for the walk legs of a [TransitItinerary].
+  ///
+  /// Same fallback behaviour as [fetchRoute]: a straight line with no
+  /// polyline/distance on failure.
+  Future<DirectionsResult> fetchWalkingRoute(LatLng start, LatLng end) =>
+      _fetch(start, end, mode: 'walking');
+
+  Future<DirectionsResult> _fetch(
+    LatLng start,
+    LatLng end, {
+    required String mode,
+  }) async {
     try {
       final apiKey = googleMapsApiKey;
       if (apiKey.isEmpty) {
@@ -44,7 +60,7 @@ class DirectionsRepository {
         'https://maps.googleapis.com/maps/api/directions/json'
         '?origin=${start.latitude},${start.longitude}'
         '&destination=${end.latitude},${end.longitude}'
-        '&mode=driving'
+        '&mode=$mode'
         '&key=$apiKey',
       );
 

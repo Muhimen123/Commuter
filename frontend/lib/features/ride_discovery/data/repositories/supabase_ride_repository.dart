@@ -61,4 +61,22 @@ class SupabaseRideRepository implements RideRepository {
         .map((row) => RouteStopModel.fromJson(row))
         .toList(growable: false);
   }
+
+  @override
+  Future<Map<String, List<RouteStop>>> getAllRouteStops() async {
+    final rows = await _client
+        .from(_stopsTable)
+        .select()
+        .order('route_id', ascending: true)
+        .order('sequence_order', ascending: true);
+
+    final byRouteId = <String, List<RouteStop>>{};
+    for (final row in rows) {
+      final routeId = row['route_id'] as String;
+      byRouteId
+          .putIfAbsent(routeId, () => <RouteStop>[])
+          .add(RouteStopModel.fromJson(row));
+    }
+    return byRouteId;
+  }
 }

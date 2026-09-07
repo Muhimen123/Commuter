@@ -5,14 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:frontend/features/map/data/directions_repository.dart';
 import 'package:frontend/features/map/data/mock_safety_heatmap_repository.dart';
 import 'package:frontend/features/map/data/places_repository.dart';
+import 'package:frontend/features/map/domain/entities/journey_leg.dart';
 import 'package:frontend/features/map/domain/entities/safety_point.dart';
 import 'package:frontend/features/map/presentation/widgets/active_ride_panel.dart';
 import 'package:frontend/features/map/presentation/widgets/add_stop_confirmation_dialog.dart';
 import 'package:frontend/features/map/presentation/widgets/bus_selection_dialog.dart';
+import 'package:frontend/features/map/presentation/widgets/journey_plan_button.dart';
+import 'package:frontend/features/map/presentation/widgets/journey_plan_dialog.dart';
 import 'package:frontend/features/map/presentation/widgets/map_search_field.dart';
 import 'package:frontend/features/map/presentation/widgets/my_location_button.dart';
 import 'package:frontend/features/map/presentation/widgets/ride_survey_dialog.dart';
@@ -22,6 +26,7 @@ import 'package:frontend/features/map/presentation/widgets/safety_map_button.dar
 import 'package:frontend/features/map/presentation/widgets/shared_location_chip.dart';
 import 'package:frontend/features/map/presentation/widgets/simulation_badge.dart';
 import 'package:frontend/features/map/presentation/widgets/start_journey_fab.dart';
+import 'package:frontend/features/ride_discovery/domain/entities/route_stop.dart';
 import 'package:frontend/features/safety/domain/sharing_notifier.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 
@@ -61,6 +66,16 @@ class _MapPageState extends ConsumerState<MapPage> {
   LocationSuggestion? _selectedDestination;
   String? _routePolyline;
   double? _routeDistanceKm;
+
+  // The itinerary picked in JourneyPlanDialog, if any. Overrides the drawn
+  // route with color-coded walk/ride legs and the board/alight stops.
+  TransitItinerary? _selectedItinerary;
+
+  // Google's actual walking path for each WalkLeg of _selectedItinerary,
+  // keyed by its index in itinerary.legs — fetched async after the
+  // itinerary is chosen. Until (or unless) an entry resolves, that leg
+  // falls back to the straight line between its two points.
+  final Map<int, List<LatLng>> _walkLegRoutePoints = {};
 
   bool _heatmapEnabled = false;
   bool _isLoadingSafetyPoints = false;
@@ -280,6 +295,8 @@ class _MapPageState extends ConsumerState<MapPage> {
       _selectedDestination = suggestion;
       _routePolyline = null;
       _routeDistanceKm = null;
+      _selectedItinerary = null;
+      _walkLegRoutePoints.clear();
     });
 
     await _animateTo(dest, 15.0);
@@ -314,6 +331,8 @@ class _MapPageState extends ConsumerState<MapPage> {
       _selectedDestination = null;
       _routePolyline = null;
       _routeDistanceKm = null;
+      _selectedItinerary = null;
+      _walkLegRoutePoints.clear();
     });
 
     await _animateTo(
@@ -345,11 +364,95 @@ class _MapPageState extends ConsumerState<MapPage> {
       _selectedDestination = null;
       _routePolyline = null;
       _routeDistanceKm = null;
+      _selectedItinerary = null;
+      _walkLegRoutePoints.clear();
       _suggestions = [];
       _isLoadingSuggestions = false;
       _searchController.clear();
     });
     _centerMapOnUser();
+  }
+
+  /// Opens the transit itinerary planner for the current draft and, if the
+  /// commuter picks an option, redraws the map with its walk/ride legs.
+  Future<void> _openJourneyPlanDialog() async {
+    final destination = _selectedDestination;
+    if (destination == null) return;
+
+    final origin = _routeOrigin ?? _lastCameraCenter;
+
+    final itinerary = await showDialog<TransitItinerary>(
+      context: context,
+      builder: (context) => JourneyPlanDialog(
+        origin: origin,
+        destination: LatLng(destination.lat, destination.lon),
+      ),
+    );
+
+    if (itinerary == null || !mounted) return;
+    setState(() {
+      _selectedItinerary = itinerary;
+      _walkLegRoutePoints.clear();
+    });
+    await _fitCameraToItinerary(itinerary);
+    unawaited(_fetchWalkLegRoutePoints(itinerary));
+  }
+
+  /// Replaces each walk leg's straight line with Google's actual walking
+  /// path, fetched in parallel. Applied incrementally as results land so
+  /// the map doesn't wait on the slowest leg; silently keeps the straight
+  /// line for any leg whose request fails.
+  Future<void> _fetchWalkLegRoutePoints(TransitItinerary itinerary) async {
+    final walkLegIndices = <int>[];
+    final requests = <Future<DirectionsResult>>[];
+    for (var i = 0; i < itinerary.legs.length; i++) {
+      final leg = itinerary.legs[i];
+      if (leg is WalkLeg) {
+        walkLegIndices.add(i);
+        requests.add(_directionsRepository.fetchWalkingRoute(leg.from, leg.to));
+      }
+    }
+    if (requests.isEmpty) return;
+
+    final results = await Future.wait(requests);
+    // A newer itinerary may have been selected while these were in flight.
+    if (!mounted || _selectedItinerary != itinerary) return;
+
+    setState(() {
+      for (var k = 0; k < walkLegIndices.length; k++) {
+        // A failed request falls back to the straight [start, end] line —
+        // not worth replacing what's already showing.
+        if (results[k].points.length > 1) {
+          _walkLegRoutePoints[walkLegIndices[k]] = results[k].points;
+        }
+      }
+    });
+  }
+
+  /// Zooms/pans the camera to fit the whole chosen itinerary, not just the
+  /// destination — a two-ride plan can bow well away from the straight line.
+  Future<void> _fitCameraToItinerary(TransitItinerary itinerary) async {
+    final points = itinerary.points;
+    if (points.isEmpty || _controller == null) return;
+
+    var minLat = points.first.latitude;
+    var maxLat = points.first.latitude;
+    var minLon = points.first.longitude;
+    var maxLon = points.first.longitude;
+    for (final point in points) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLon) minLon = point.longitude;
+      if (point.longitude > maxLon) maxLon = point.longitude;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLon),
+      northeast: LatLng(maxLat, maxLon),
+    );
+    await _controller!.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 56),
+    );
   }
 
   Future<void> _startJourney() async {
@@ -361,9 +464,14 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
 
     if (!mounted) return;
+    final chosenItineraryRides = _selectedItinerary?.rideLegs;
+    final initialRouteId = chosenItineraryRides != null && chosenItineraryRides.isNotEmpty
+        ? chosenItineraryRides.first.ride.id
+        : null;
+
     final selectedBus = await showDialog<BusSelectionResult>(
       context: context,
-      builder: (context) => const BusSelectionDialog(),
+      builder: (context) => BusSelectionDialog(initialRouteId: initialRouteId),
     );
 
     if (selectedBus == null || selectedBus.busName.isEmpty) return;
@@ -555,11 +663,38 @@ class _MapPageState extends ConsumerState<MapPage> {
     };
   }
 
-  /// Builds the route polyline and destination marker.
+  /// Builds the route polyline(s): one leg-colored dashed/solid polyline per
+  /// leg when an itinerary is selected, otherwise the single Directions line.
   Set<Polyline> _buildRoutePolylines() {
-    if (!_hasRoute || _routePoints.isEmpty) return const {};
-
+    final itinerary = _selectedItinerary;
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (itinerary != null) {
+      final polylines = <Polyline>{};
+      for (var i = 0; i < itinerary.legs.length; i++) {
+        final leg = itinerary.legs[i];
+        final polylineId = PolylineId('leg_$i');
+        polylines.add(
+          switch (leg) {
+            WalkLeg() => Polyline(
+                polylineId: polylineId,
+                points: _walkLegRoutePoints[i] ?? leg.points,
+                color: colorScheme.outline,
+                width: 4,
+              ),
+            RideLeg(ride: final ride) => Polyline(
+                polylineId: polylineId,
+                points: leg.points,
+                color: rideColor(ride, colorScheme),
+                width: 5,
+              ),
+          },
+        );
+      }
+      return polylines;
+    }
+
+    if (!_hasRoute || _routePoints.isEmpty) return const {};
 
     return {
       Polyline(
@@ -572,6 +707,31 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Set<Marker> _buildRouteMarkers() {
+    final itinerary = _selectedItinerary;
+
+    if (itinerary != null) {
+      final markers = <Marker>{};
+      for (final leg in itinerary.rideLegs) {
+        markers.add(_stopMarker(leg.boardStop, prefix: 'board'));
+        markers.add(_stopMarker(leg.alightStop, prefix: 'alight'));
+      }
+
+      final points = itinerary.points;
+      if (points.isNotEmpty) {
+        const markerId = MarkerId('destination');
+        markers.add(
+          Marker(
+            markerId: markerId,
+            position: points.last,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            consumeTapEvents: true,
+            onTap: () => _controller?.showMarkerInfoWindow(markerId),
+          ),
+        );
+      }
+      return markers;
+    }
+
     if (!_hasRoute || _routePoints.isEmpty) return const {};
 
     const markerId = MarkerId('destination');
@@ -587,6 +747,23 @@ class _MapPageState extends ConsumerState<MapPage> {
         },
       ),
     };
+  }
+
+  /// Marker for a board/alight stop on a chosen itinerary. The id folds in
+  /// the stop id and whether it's a board or alight point, so a transfer
+  /// stop (both boarded and alighted elsewhere) never collides.
+  Marker _stopMarker(RouteStop stop, {required String prefix}) {
+    final markerId = MarkerId('${prefix}_${stop.id}');
+    return Marker(
+      markerId: markerId,
+      position: LatLng(stop.latitude, stop.longitude),
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+        prefix == 'board' ? BitmapDescriptor.hueGreen : BitmapDescriptor.hueOrange,
+      ),
+      infoWindow: InfoWindow(title: stop.stopName),
+      consumeTapEvents: true,
+      onTap: () => _controller?.showMarkerInfoWindow(markerId),
+    );
   }
 
   String _nextMarkerId(String prefix) {
@@ -637,11 +814,22 @@ class _MapPageState extends ConsumerState<MapPage> {
       resizeToAvoidBottomInset: false,
       floatingActionButton: journeyStarted
           ? null
-          : StartJourneyFab(
-              hasRoute: _hasRoute,
-              isStartingJourney: isStartingJourney,
-              journeyStarted: journeyStarted,
-              onPressed: _startJourney,
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                JourneyPlanButton(
+                  hasRoute: _hasRoute && _selectedDestination != null,
+                  onPressed: _openJourneyPlanDialog,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                StartJourneyFab(
+                  hasRoute: _hasRoute,
+                  isStartingJourney: isStartingJourney,
+                  journeyStarted: journeyStarted,
+                  onPressed: _startJourney,
+                ),
+              ],
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
