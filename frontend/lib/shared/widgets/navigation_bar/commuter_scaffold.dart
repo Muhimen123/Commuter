@@ -5,6 +5,8 @@ import 'package:frontend/features/journey/domain/simulation_provider.dart';
 import 'package:frontend/features/journey/presentation/widgets/simulation_toggle_dialog.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
 import 'package:frontend/features/safety/domain/safety_notifier.dart';
+import 'package:frontend/features/notifications/domain/notification_notifier.dart';
+import 'package:frontend/features/notifications/domain/entities/app_notification.dart';
 
 class CommuterScaffold extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -17,6 +19,13 @@ class CommuterScaffold extends ConsumerWidget {
     ref.listen<SafetyAlert?>(safetyAlertProvider, (previous, next) {
       if (next != null) {
         _showEmergencyModal(context, ref, next);
+      }
+    });
+
+    // Listen for general notifications
+    ref.listen<NotificationState>(notificationProvider, (previous, next) {
+      if (next.latestNotification != null && next.latestNotification != previous?.latestNotification) {
+        _handleNewNotification(context, ref, next.latestNotification!);
       }
     });
 
@@ -88,6 +97,57 @@ class CommuterScaffold extends ConsumerWidget {
           : 'Ride simulation disabled',
       icon: newValue ? Icons.developer_mode_rounded : Icons.gps_fixed_rounded,
     );
+  }
+
+  void _handleNewNotification(BuildContext context, WidgetRef ref, AppNotification notification) {
+    // If it's an SOS alert, the safetyAlertProvider might already be handling it with a big modal.
+    // We can avoid double-showing if it's an SOS type.
+    if (notification.type == 'sos_alert') {
+      ref.read(notificationProvider.notifier).clearLatest();
+      return;
+    }
+
+    CommuterToast.show(
+      context,
+      message: '${notification.title}: ${notification.content}',
+      icon: _getIconForType(notification.type),
+      onTap: () => _onNotificationTap(context, ref, notification),
+    );
+
+    ref.read(notificationProvider.notifier).clearLatest();
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'contact_invite':
+        return Icons.person_add_alt_1;
+      case 'location_share':
+        return Icons.share_location;
+      case 'sos_alert':
+        return Icons.emergency_share;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  void _onNotificationTap(BuildContext context, WidgetRef ref, AppNotification notification) {
+    ref.read(notificationProvider.notifier).markAsRead(notification.id);
+
+    if (notification.type == 'contact_invite') {
+      context.go('/trusted_contacts');
+    } else if (notification.type == 'location_share') {
+      final payload = notification.payload;
+      if (payload != null) {
+        final lat = payload['lat'];
+        final lng = payload['lng'];
+        final name = payload['sender_name'];
+        if (lat != null && lng != null) {
+          context.go('/?lat=$lat&lon=$lng&name=$name');
+        } else {
+          context.go('/safety');
+        }
+      }
+    }
   }
 
   void _showEmergencyModal(BuildContext context, WidgetRef ref, SafetyAlert alert) {

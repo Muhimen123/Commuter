@@ -41,6 +41,28 @@ class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
     }
   }
 
+  Future<bool> _confirmDelete(String name) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove Contact'),
+            content: Text(
+                'Are you sure you want to remove $name from your trusted guardians? This will mutually remove both of you from each other\'s lists.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Remove', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final contactsAsync = ref.watch(trustedContactsProvider);
@@ -49,41 +71,58 @@ class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
       appBar: AppBar(
         title: const Text('Guardians & Invites'),
       ),
-      body: contactsAsync.when(
-        data: (allContacts) {
-          final accepted = allContacts.where((c) => c.status == 'accepted').toList();
-          final incoming = allContacts.where((c) => c.status == 'pending' && c.isIncoming).toList();
-          final outgoing = allContacts.where((c) => c.status == 'pending' && !c.isIncoming).toList();
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(trustedContactsProvider.notifier).loadContacts(),
+        child: contactsAsync.when(
+          data: (allContacts) {
+            // Trusted Guardians: Show only rows where I am the OWNER and status is ACCEPTED
+            final accepted = allContacts.where((c) => c.status == 'accepted' && !c.isIncoming).toList();
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (incoming.isNotEmpty) ...[
-                _buildHeader('Pending Requests'),
-                ...incoming.map((c) => _buildInviteTile(c, true)),
-                const SizedBox(height: 24),
-              ],
-              
-              _buildHeader('Trusted Guardians'),
-              if (accepted.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32.0),
-                    child: Text('No trusted guardians yet.', style: TextStyle(color: Colors.grey)),
+            // Pending Incoming: Someone wants to add ME
+            final incoming = allContacts.where((c) => c.status == 'pending' && c.isIncoming).toList();
+
+            // Pending Outgoing: I want to add SOMEONE ELSE
+            final outgoing = allContacts.where((c) => c.status == 'pending' && !c.isIncoming).toList();
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                if (incoming.isNotEmpty) ...[
+                  _buildHeader('Pending Requests'),
+                  ...incoming.map((c) => _buildInviteTile(c, true)),
+                  const SizedBox(height: 24),
+                ],
+
+                _buildHeader('Trusted Guardians'),
+                if (accepted.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: Text('No trusted guardians yet.', style: TextStyle(color: Colors.grey)),
+                    ),
                   ),
-                ),
-              ...accepted.map((c) => _buildContactTile(c)),
+                ...accepted.map((c) => _buildContactTile(c)),
 
-              if (outgoing.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                _buildHeader('Sent Invites'),
-                ...outgoing.map((c) => _buildInviteTile(c, false)),
+                if (outgoing.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _buildHeader('Sent Invites (Waiting for response)'),
+                  ...outgoing.map((c) => _buildInviteTile(c, false)),
+                ],
               ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Center(child: Text('Error: $e')),
+              ),
             ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+          ),
+        ),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -106,7 +145,7 @@ class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
       padding: const EdgeInsets.only(bottom: 12.0, left: 4),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
       ),
     );
   }
@@ -119,21 +158,24 @@ class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
       child: ListTile(
         title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(contact.phoneNumber),
-        trailing: isIncoming 
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
-                  onPressed: () => ref.read(trustedContactsProvider.notifier).respondToInvite(contact.id, true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.red),
-                  onPressed: () => ref.read(trustedContactsProvider.notifier).respondToInvite(contact.id, false),
-                ),
-              ],
-            )
-          : const Chip(label: Text('Pending', style: TextStyle(fontSize: 10))),
+        trailing: isIncoming
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                    onPressed: () => ref.read(trustedContactsProvider.notifier).respondToInvite(contact.id, true),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel, color: Colors.red),
+                    onPressed: () => ref.read(trustedContactsProvider.notifier).respondToInvite(contact.id, false),
+                  ),
+                ],
+              )
+            : TextButton(
+                onPressed: () => ref.read(trustedContactsProvider.notifier).cancelInvite(contact.id),
+                child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              ),
       ),
     );
   }
@@ -154,7 +196,11 @@ class _TrustedContactsPageState extends ConsumerState<TrustedContactsPage> {
         subtitle: Text(contact.phoneNumber),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red),
-          onPressed: () => ref.read(trustedContactsProvider.notifier).deleteContact(contact.id),
+          onPressed: () async {
+            if (await _confirmDelete(contact.name)) {
+              ref.read(trustedContactsProvider.notifier).deleteContact(contact.id);
+            }
+          },
         ),
       ),
     );

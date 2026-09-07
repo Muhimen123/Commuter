@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:frontend/app.dart';
+import 'package:frontend/features/notifications/domain/local_notification_service.dart';
 
 String _bareSupabaseUrl(String rawUrl) {
   return rawUrl.replaceFirst(RegExp(r'/rest/v1/?$'), '');
@@ -9,6 +10,8 @@ String _bareSupabaseUrl(String rawUrl) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await LocalNotificationService.initialize();
 
   try {
     final url = _bareSupabaseUrl(const String.fromEnvironment('SUPABASE_URL'));

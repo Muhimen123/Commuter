@@ -143,9 +143,15 @@ class SharingNotifier extends StateNotifier<SharingState> {
     if (_positionSubscription != null) return;
 
     _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
+      locationSettings: AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Ping every 10 meters
+        distanceFilter: 10,
+        foregroundNotificationConfig: ForegroundNotificationConfig(
+          notificationTitle: "Location Sharing Active",
+          notificationText: "Commuter is sharing your live location for your safety.",
+          notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
+          enableWakeLock: true,
+        ),
       ),
     ).listen((position) async {
       final userId = _ref.read(authProvider).valueOrNull?.id;
