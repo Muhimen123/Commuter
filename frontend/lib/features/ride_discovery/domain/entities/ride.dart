@@ -1,4 +1,6 @@
-enum RideStatus { arriving, scheduled, delayed }
+enum RideStatus { scheduled, arriving, inTransit, delayed, cancelled }
+
+enum TransitMode { bus, metro, train }
 
 class Ride {
   final String id;
@@ -12,6 +14,14 @@ class Ride {
   final int safetyScore;
   final double fare;
   final bool isRecommended;
+  final TransitMode transitMode;
+  final String? lineCode;
+  final String? lineColor;
+  final double? startLatitude;
+  final double? startLongitude;
+  final double? endLatitude;
+  final double? endLongitude;
+  final String? routePolyline;
 
   const Ride({
     required this.id,
@@ -25,5 +35,13 @@ class Ride {
     required this.safetyScore,
     required this.fare,
     this.isRecommended = false,
+    this.transitMode = TransitMode.bus,
+    this.lineCode,
+    this.lineColor,
+    this.startLatitude,
+    this.startLongitude,
+    this.endLatitude,
+    this.endLongitude,
+    this.routePolyline,
   });
 }

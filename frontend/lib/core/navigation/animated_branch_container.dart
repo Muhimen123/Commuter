@@ -88,6 +88,11 @@ class _AnimatedBranchContainerState extends State<AnimatedBranchContainer>
       );
     }
 
+    // Bug fix: Home page not rendering on startup
+    if (isCurrent && !_isAnimating) {
+      return TickerMode(enabled: true, child: widget.children[index]);
+    }
+
     return IgnorePointer(
       ignoring: !isCurrent,
       child: AnimatedBuilder(
