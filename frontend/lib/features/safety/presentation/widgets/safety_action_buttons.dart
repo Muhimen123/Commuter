@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend/features/safety/domain/safety_notifier.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/shared/widgets/commuter_toast.dart';
-import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 class SafetyActionButtons extends ConsumerWidget {
   const SafetyActionButtons({super.key});
@@ -19,11 +19,7 @@ class SafetyActionButtons extends ConsumerWidget {
             icon: Icons.map_outlined,
             label: 'Area Survey',
             color: const Color(0xFFC0A94E),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const IncidentReportPage()),
-              );
-            },
+            onTap: () => context.push('/report'),
           ),
         ),
         const SizedBox(width: 12),

@@ -15,4 +15,6 @@ abstract class IncidentReportRepository {
     required int overallSafetyRating,
     String? notes,
   });
+
+  Future<List<IncidentReport>> getHistory({required String userId});
 }

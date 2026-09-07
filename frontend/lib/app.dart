@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/animated_branch_container.dart';
 import 'package:frontend/core/navigation/page_transitions.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/features/auth/domain/auth_notifier.dart';
+import 'package:frontend/features/auth/domain/auth_user.dart';
 import 'package:frontend/features/map/presentation/pages/map_page.dart';
 
 import 'package:frontend/features/onboarding/presentation/pages/splash_page.dart';
@@ -22,13 +25,41 @@ import 'package:frontend/features/profile/presentation/pages/settings_page.dart'
 import 'package:frontend/features/profile/presentation/pages/ride_history_page.dart';
 import 'package:frontend/features/profile/presentation/pages/trusted_contacts_page.dart';
 import 'package:frontend/features/safety/presentation/pages/safety_page.dart';
+import 'package:frontend/features/safety/presentation/pages/report/incident_report_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-final GoRouter _router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: '/splash',
-  routes: [
+const _authOnlyRoutes = {'/login', '/signup'};
+
+class _AuthRefreshListenable extends ChangeNotifier {
+  _AuthRefreshListenable(Ref ref) {
+    ref.listen<AsyncValue<AuthUser?>>(authProvider, (_, _) => notifyListeners());
+  }
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final refreshListenable = _AuthRefreshListenable(ref);
+  ref.onDispose(refreshListenable.dispose);
+
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: '/splash',
+    refreshListenable: refreshListenable,
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      if (authState.isLoading) return null;
+
+      final isLoggedIn = authState.valueOrNull != null;
+      final isAuthOnlyRoute = _authOnlyRoutes.contains(state.matchedLocation);
+
+      if (isLoggedIn && isAuthOnlyRoute) return '/';
+      return null;
+    },
+    routes: _routes,
+  );
+});
+
+final List<RouteBase> _routes = [
     StatefulShellRoute(
       builder: (context, state, navigationShell) =>
           CommuterScaffold(navigationShell: navigationShell),
@@ -148,27 +179,32 @@ final GoRouter _router = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/report',
+      pageBuilder: (context, state) =>
+          slideTransitionPage(state: state, child: const IncidentReportPage()),
+    ),
+    GoRoute(
       path: '/bus_profile',
       pageBuilder: (context, state) {
         final ride = state.extra as Ride;
         return slideTransitionPage(state: state, child: BusProfilePage(ride: ride));
       },
     ),
-  ],
-);
+];
 
-class CommuterApp extends StatelessWidget {
+class CommuterApp extends ConsumerWidget {
   const CommuterApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Commuter App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
-      routerConfig: _router,
+      routerConfig: router,
     );
   }
 }
