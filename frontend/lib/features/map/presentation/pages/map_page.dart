@@ -9,6 +9,7 @@ import 'package:frontend/core/theme/design_tokens.dart';
 import 'package:frontend/features/journey/domain/journey_notifier.dart';
 import 'package:frontend/features/map/data/directions_repository.dart';
 import 'package:frontend/features/map/data/mock_safety_heatmap_repository.dart';
+import 'package:frontend/features/map/data/supabase_safety_heatmap_repository.dart';
 import 'package:frontend/features/map/data/places_repository.dart';
 import 'package:frontend/features/map/domain/entities/journey_leg.dart';
 import 'package:frontend/features/map/domain/entities/safety_point.dart';
@@ -53,7 +54,7 @@ class _MapPageState extends ConsumerState<MapPage> {
   final TextEditingController _searchController = TextEditingController();
   final PlacesRepository _placesRepository = PlacesRepository();
   final DirectionsRepository _directionsRepository = DirectionsRepository();
-  final SafetyHeatmapRepository _safetyHeatmapRepository = MockSafetyHeatmapRepository();
+  final SafetyHeatmapRepository _safetyHeatmapRepository = SupabaseSafetyHeatmapRepository();
 
   Timer? _debounceTimer;
   List<LocationSuggestion> _suggestions = [];
