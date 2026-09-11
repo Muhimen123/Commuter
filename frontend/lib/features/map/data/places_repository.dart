@@ -4,11 +4,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 
-/// A location suggestion returned by the Google Places API.
 class LocationSuggestion {
   final String name;
   final String? placeId;
   final String? street;
+
+  final String? area;
+
+  final String? neighborhood;
   final String? city;
   final String? state;
   final String? country;
@@ -19,6 +22,8 @@ class LocationSuggestion {
     required this.name,
     this.placeId,
     this.street,
+    this.area,
+    this.neighborhood,
     this.city,
     this.state,
     this.country,
@@ -30,7 +35,8 @@ class LocationSuggestion {
   String get displayName {
     final parts = <String>[];
     if (name.isNotEmpty) parts.add(name);
-    if (street != null && street!.isNotEmpty && street != name) parts.add(street!);
+    if (street != null && street!.isNotEmpty && street != name)
+      parts.add(street!);
     if (city != null && city!.isNotEmpty) parts.add(city!);
     if (state != null && state!.isNotEmpty) parts.add(state!);
     if (country != null && country!.isNotEmpty) parts.add(country!);
@@ -38,20 +44,11 @@ class LocationSuggestion {
   }
 }
 
-/// Repository for location search using the Google Places API.
-///
-/// Uses the legacy Places API endpoints:
-/// - Place Autocomplete  → search suggestions
-/// - Place Details       → lat/lng for a selected place
 class PlacesRepository {
   final http.Client _client;
 
   PlacesRepository({http.Client? client}) : _client = client ?? http.Client();
 
-  /// Fetches location suggestions matching [query] via Google Places Autocomplete.
-  ///
-  /// If [center] is provided, results are biased toward that location for
-  /// more relevant local suggestions.
   Future<List<LocationSuggestion>> fetchSuggestions(
     String query, {
     int limit = 5,
@@ -73,7 +70,6 @@ class PlacesRepository {
         '&key=$apiKey',
       );
 
-      // Add location bias if we have a center (radius in meters, ~20km).
       if (center != null) {
         urlStr.write('&location=${center.latitude},${center.longitude}');
         urlStr.write('&radius=20000');
@@ -97,7 +93,9 @@ class PlacesRepository {
           final batch = predictions.take(limit).toList();
           if (batch.isEmpty) return [];
 
-          final futures = batch.map((p) => _placeDetailsToSuggestion(p as Map<String, dynamic>));
+          final futures = batch.map(
+            (p) => _placeDetailsToSuggestion(p as Map<String, dynamic>),
+          );
           final suggestions = await Future.wait(futures);
 
           for (final s in suggestions) {
@@ -116,8 +114,90 @@ class PlacesRepository {
     return [];
   }
 
-  /// Fetches place details (lat/lng + address components) for a prediction
-  /// and returns a [LocationSuggestion].
+  Future<LocationSuggestion?> reverseGeocode(LatLng coords) async {
+    final apiKey = googleMapsApiKey;
+    if (apiKey.isEmpty) {
+      debugPrint('PlacesRepository: No Google Maps API key set');
+      return null;
+    }
+
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json'
+        '?latlng=${coords.latitude},${coords.longitude}'
+        '&key=$apiKey',
+      );
+
+      final response = await _client.get(url);
+      if (response.statusCode != 200) return null;
+
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final status = data['status'] as String? ?? '';
+
+      if (status != 'OK') {
+        debugPrint('Reverse geocode error status: $status');
+        return null;
+      }
+
+      final results = data['results'] as List<dynamic>? ?? [];
+      if (results.isEmpty) return null;
+
+      final result = results.first as Map<String, dynamic>;
+      final placeId = result['place_id'] as String? ?? '';
+      final formattedAddress = result['formatted_address'] as String? ?? '';
+
+      final components = result['address_components'] as List<dynamic>? ?? [];
+      String? street, area, city, state, country;
+
+      for (final c in components) {
+        final types =
+            (c as Map<String, dynamic>)['types'] as List<dynamic>? ?? [];
+        final longName = c['long_name'] as String? ?? '';
+        if (types.contains('route')) street = longName;
+        if (types.contains('sublocality')) area = longName;
+        if (types.contains('locality') ||
+            types.contains('administrative_area_level_3')) {
+          city = longName;
+        }
+        if (types.contains('administrative_area_level_1')) state = longName;
+        if (types.contains('country')) country = longName;
+      }
+
+      String? neighborhood;
+      for (final r in results) {
+        final rComponents =
+            (r as Map<String, dynamic>)['address_components']
+                as List<dynamic>? ??
+            [];
+        for (final c in rComponents) {
+          final types =
+              (c as Map<String, dynamic>)['types'] as List<dynamic>? ?? [];
+          if (types.contains('neighborhood')) {
+            neighborhood = c['long_name'] as String? ?? '';
+            break;
+          }
+        }
+        if (neighborhood != null) break;
+      }
+
+      return LocationSuggestion(
+        name: formattedAddress.split(',').first.trim(),
+        placeId: placeId,
+        street: street,
+        area: area,
+        neighborhood: neighborhood,
+        city: city,
+        state: state,
+        country: country,
+        lat: coords.latitude,
+        lon: coords.longitude,
+      );
+    } catch (e) {
+      debugPrint('ReverseGeocode error: $e');
+      return null;
+    }
+  }
+
   Future<LocationSuggestion?> _placeDetailsToSuggestion(
     Map<String, dynamic> prediction,
   ) async {
@@ -154,10 +234,12 @@ class PlacesRepository {
       String? street, city, state, country;
 
       for (final c in components) {
-        final types = (c as Map<String, dynamic>)['types'] as List<dynamic>? ?? [];
+        final types =
+            (c as Map<String, dynamic>)['types'] as List<dynamic>? ?? [];
         final longName = c['long_name'] as String? ?? '';
         if (types.contains('route')) street = longName;
-        if (types.contains('locality') || types.contains('administrative_area_level_3')) {
+        if (types.contains('locality') ||
+            types.contains('administrative_area_level_3')) {
           city = longName;
         }
         if (types.contains('administrative_area_level_1')) state = longName;

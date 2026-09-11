@@ -766,10 +766,6 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
-  String _nextMarkerId(String prefix) {
-    _markerIdCounter++;
-    return '$prefix$_markerIdCounter';
-  }
 
   @override
   void dispose() {
