@@ -391,12 +391,7 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
       'city=${place.city}, state=${place.state}, country=${place.country}, '
       'lat=${place.lat}, lon=${place.lon}',
     );
-    final area = place.neighborhood ??
-        place.area ??
-        place.city ??
-        place.state ??
-        place.country ??
-        place.name;
+    final area = place.neighborhoodName;
     final city = place.city;
     if (area.isNotEmpty && city != null && city.isNotEmpty && area != city) {
       return '$area, $city';

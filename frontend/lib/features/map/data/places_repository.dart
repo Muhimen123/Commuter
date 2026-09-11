@@ -31,7 +31,6 @@ class LocationSuggestion {
     required this.lon,
   });
 
-  /// Formatted display string, e.g. "Gulshan, Dhaka, Bangladesh".
   String get displayName {
     final parts = <String>[];
     if (name.isNotEmpty) parts.add(name);
@@ -41,6 +40,11 @@ class LocationSuggestion {
     if (state != null && state!.isNotEmpty) parts.add(state!);
     if (country != null && country!.isNotEmpty) parts.add(country!);
     return parts.join(', ');
+  }
+
+  String get neighborhoodName {
+    final finest = neighborhood ?? area ?? city ?? state ?? country;
+    return (finest != null && finest.isNotEmpty) ? finest : name;
   }
 }
 
