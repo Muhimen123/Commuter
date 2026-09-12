@@ -523,9 +523,9 @@ class _MapPageState extends ConsumerState<MapPage> {
       context: context,
       builder: (dialogContext) => AddStopConfirmationDialog(
         center: center,
-        onAddStop: () async {
+        onAddStop: (locationName) async {
           final stop = await notifier.addStop(
-            stopName: null,
+            stopName: locationName,
             latitude: center.latitude,
             longitude: center.longitude,
           );
@@ -767,10 +767,6 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 
-  String _nextMarkerId(String prefix) {
-    _markerIdCounter++;
-    return '$prefix$_markerIdCounter';
-  }
 
   @override
   void dispose() {

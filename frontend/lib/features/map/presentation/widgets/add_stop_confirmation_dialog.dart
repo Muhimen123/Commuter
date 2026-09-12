@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/map/data/places_repository.dart';
 
-class AddStopConfirmationDialog extends StatelessWidget {
+class AddStopConfirmationDialog extends StatefulWidget {
   const AddStopConfirmationDialog({
     super.key,
     required this.center,
@@ -10,7 +11,32 @@ class AddStopConfirmationDialog extends StatelessWidget {
   });
 
   final LatLng center;
-  final VoidCallback onAddStop;
+
+  final void Function(String? locationName) onAddStop;
+
+  @override
+  State<AddStopConfirmationDialog> createState() => _AddStopConfirmationDialogState();
+}
+
+class _AddStopConfirmationDialogState extends State<AddStopConfirmationDialog> {
+  final PlacesRepository _placesRepository = PlacesRepository();
+  bool _isLoading = true;
+  String? _locationName;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveLocationName();
+  }
+
+  Future<void> _resolveLocationName() async {
+    final place = await _placesRepository.reverseGeocode(widget.center);
+    if (!mounted) return;
+    setState(() {
+      _locationName = place?.neighborhoodName;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +98,23 @@ class AddStopConfirmationDialog extends StatelessWidget {
                       const Icon(Icons.location_on, size: 20, color: AppColors.danger),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          '742 Evergreen Terrace, Transit Hub',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            height: 1.3,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 14,
+                                width: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              )
+                            : Text(
+                                _locationName ?? 'Unknown location',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  height: 1.3,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -90,7 +125,7 @@ class AddStopConfirmationDialog extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'GPS: ${center.latitude.toStringAsFixed(4)}, ${center.longitude.toStringAsFixed(4)}',
+                          'GPS: ${widget.center.latitude.toStringAsFixed(4)}, ${widget.center.longitude.toStringAsFixed(4)}',
                           style: TextStyle(
                             fontSize: 13.5,
                             color: colorScheme.onSurfaceVariant,
@@ -141,7 +176,7 @@ class AddStopConfirmationDialog extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  onAddStop();
+                  widget.onAddStop(_locationName);
                 },
                 child: const Text(
                   'Add Stop',

@@ -1,23 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/auth/domain/auth_notifier.dart';
+import 'package:frontend/features/map/data/places_repository.dart';
 import 'package:frontend/features/safety/data/repositories/supabase_incident_report_repository.dart';
 import 'package:frontend/shared/widgets/navigation_bar/commuter_nav_bar.dart';
 
-// Bottom nav destinations, in the same order/index as CommuterScaffold's
-// branches — this page sits outside the tab shell (see app.dart's top-level
-// '/report' route) so it navigates via GoRouter.go instead of goBranch.
 const List<String> _kTabPaths = ['/', '/planner', '/safety', '/profile'];
 
-// Must match the dev user seeded in supabase/seed.sql — mirrors the same
-// placeholder used in journey_notifier.dart until real Supabase Auth lands.
 const String _kDevUserId = '00000000-0000-0000-0000-000000000001';
 
 class _RatingCategory {
@@ -330,6 +324,7 @@ class IncidentReportPage extends ConsumerStatefulWidget {
 }
 
 class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
+  final PlacesRepository _placesRepository = PlacesRepository();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final Map<String, int> _ratings = {};
@@ -388,36 +383,20 @@ class _IncidentReportPageState extends ConsumerState<IncidentReportPage> {
   }
 
   Future<String?> _reverseGeocode(double lat, double lng) async {
-    try {
-      final uri = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse'
-        '?format=json&lat=$lat&lon=$lng&zoom=16&addressdetails=1',
-      );
-      final response = await http
-          .get(uri, headers: {'Accept-Language': 'en'})
-          .timeout(const Duration(seconds: 6));
-      if (response.statusCode != 200) return null;
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final address = data['address'] as Map<String, dynamic>?;
-      if (address == null) return data['display_name'] as String?;
-
-      final area = address['suburb'] ??
-          address['neighbourhood'] ??
-          address['residential'] ??
-          address['quarter'] ??
-          address['city_district'] ??
-          address['town'] ??
-          address['village'];
-      final city = address['city'] ?? address['county'] ?? address['state'];
-
-      if (area != null && city != null && area != city) {
-        return '$area, $city';
-      }
-      return (area ?? city) as String? ?? data['display_name'] as String?;
-    } catch (_) {
-      return null;
+    final place = await _placesRepository.reverseGeocode(LatLng(lat, lng));
+    if (place == null) return null;
+    debugPrint(
+      'Reverse geocode result: name=${place.name}, placeId=${place.placeId}, '
+      'street=${place.street}, area=${place.area}, neighborhood=${place.neighborhood}, '
+      'city=${place.city}, state=${place.state}, country=${place.country}, '
+      'lat=${place.lat}, lon=${place.lon}',
+    );
+    final area = place.neighborhoodName;
+    final city = place.city;
+    if (area.isNotEmpty && city != null && city.isNotEmpty && area != city) {
+      return '$area, $city';
     }
+    return area.isNotEmpty ? area : city;
   }
 
   Future<void> _handleSubmit() async {
