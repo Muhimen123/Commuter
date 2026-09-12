@@ -483,6 +483,7 @@ class _MapPageState extends ConsumerState<MapPage> {
 
     await notifier.startJourney(
       routeId: selectedBus.routeId,
+      busName: selectedBus.busName,
       originLatitude: origin.latitude,
       originLongitude: origin.longitude,
       destinationName: dest?.name,

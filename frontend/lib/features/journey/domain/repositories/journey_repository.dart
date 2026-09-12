@@ -6,6 +6,7 @@ abstract class JourneyRepository {
   Future<Journey> startJourney({
     required String userId,
     String? routeId,
+    String? busName,
     String? originName,
     String? originPlaceId,
     required double originLatitude,

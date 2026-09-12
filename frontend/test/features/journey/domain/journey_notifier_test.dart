@@ -85,6 +85,7 @@ class _FakeJourneyRepository implements JourneyRepository {
   Future<Journey> startJourney({
     required String userId,
     String? routeId,
+    String? busName,
     String? originName,
     String? originPlaceId,
     required double originLatitude,
@@ -100,6 +101,7 @@ class _FakeJourneyRepository implements JourneyRepository {
     startCalls.add({
       'userId': userId,
       'routeId': routeId,
+      'busName': busName,
       'originName': originName,
       'originPlaceId': originPlaceId,
       'originLatitude': originLatitude,
@@ -256,6 +258,17 @@ void main() {
         expect(state.isStarting, isFalse);
         expect(state.hasActiveJourney, isTrue);
         expect(state.activeJourney!.id, 'journey-1');
+      });
+
+      test('forwards busName to the repository so a new bus can resolve a route',
+          () async {
+        await notifier.startJourney(
+          busName: 'Green Line 5',
+          originLatitude: 23.7937,
+          originLongitude: 90.4066,
+        );
+
+        expect(repo.startCalls.last['busName'], 'Green Line 5');
       });
 
       test('captures an error and returns null on failure', () async {

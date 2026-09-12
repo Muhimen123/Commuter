@@ -69,6 +69,7 @@ class JourneyNotifier extends Notifier<JourneyState> {
 
   Future<Journey?> startJourney({
     String? routeId,
+    String? busName,
     String? originName,
     String? originPlaceId,
     required double originLatitude,
@@ -87,6 +88,7 @@ class JourneyNotifier extends Notifier<JourneyState> {
       final journey = await _repository.startJourney(
         userId: _currentUserId,
         routeId: routeId,
+        busName: busName,
         originName: originName,
         originPlaceId: originPlaceId,
         originLatitude: originLatitude,
