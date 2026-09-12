@@ -23,7 +23,13 @@ class RideModel extends Ride {
     super.routePolyline,
   });
 
-  factory RideModel.fromJson(Map<String, dynamic> json, {String? via}) {
+  /// [ratingSummary] is `(averageRating, reviewCount)`, computed from rated
+  /// post-ride surveys — `null` when the route has no reviews yet.
+  factory RideModel.fromJson(
+    Map<String, dynamic> json, {
+    String? via,
+    (double, int)? ratingSummary,
+  }) {
     return RideModel(
       id: json['id'] as String,
       routeNumber: json['route_number'] as String,
@@ -31,8 +37,8 @@ class RideModel extends Ride {
       destination: json['end_point_name'] as String? ?? '',
       via: via ?? '',
       status: _statusFromString(json['current_status'] as String?),
-      rating: 0,
-      reviewCount: 0,
+      rating: ratingSummary?.$1 ?? 0,
+      reviewCount: ratingSummary?.$2 ?? 0,
       safetyScore: _safetyScoreToPercent(json['safety_score'] as num?),
       fare: (json['average_fare'] as num?)?.toDouble() ?? 0,
       transitMode: _transitModeFromString(json['transit_mode'] as String?),

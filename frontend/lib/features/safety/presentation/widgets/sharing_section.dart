@@ -94,18 +94,17 @@ class SharingSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 for (final loc in sharedWithMe)
-                  if (loc != null)
-                    _buildGuardianTile(
-                      context,
-                      loc.sharerName,
-                      loc.lastPingAt != null ? 'Last seen just now' : 'Waiting for signal',
-                      loc.sharerPhoto,
-                      onTap: () {
-                        if (loc.latitude != null && loc.longitude != null) {
-                          context.go('/?lat=${loc.latitude}&lon=${loc.longitude}&name=${loc.sharerName}');
-                        }
-                      },
-                    ),
+                  _buildGuardianTile(
+                    context,
+                    loc.sharerName,
+                    loc.lastPingAt != null ? 'Last seen just now' : 'Waiting for signal',
+                    loc.sharerPhoto,
+                    onTap: () {
+                      if (loc.latitude != null && loc.longitude != null) {
+                        context.go('/?lat=${loc.latitude}&lon=${loc.longitude}&name=${loc.sharerName}');
+                      }
+                    },
+                  ),
               ],
             ),
           ),

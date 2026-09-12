@@ -5,10 +5,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/theme/design_tokens.dart';
+import 'package:frontend/features/ride_discovery/domain/entities/review.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/ride.dart';
 import 'package:frontend/features/ride_discovery/domain/entities/route_stop.dart';
 import 'package:frontend/features/ride_discovery/domain/rides_provider.dart';
 import 'package:frontend/shared/utils/polyline_codec.dart';
+
+String _timeAgo(DateTime dateTime) {
+  final diff = DateTime.now().difference(dateTime);
+  if (diff.inMinutes < 1) return 'Just now';
+  if (diff.inMinutes < 60) {
+    return '${diff.inMinutes} min${diff.inMinutes == 1 ? '' : 's'} ago';
+  }
+  if (diff.inHours < 24) {
+    return '${diff.inHours} hour${diff.inHours == 1 ? '' : 's'} ago';
+  }
+  return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+}
 
 class BusProfilePage extends ConsumerWidget {
   final Ride ride;
@@ -77,6 +90,7 @@ class BusProfilePage extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final stopsAsync = ref.watch(routeStopsProvider(ride.id));
+    final reviewsAsync = ref.watch(reviewsProvider(ride.id));
     final stops = stopsAsync.valueOrNull ?? const <RouteStop>[];
     final routePoints = _routePoints(stops);
     final markers = _markers(stops);
@@ -213,17 +227,26 @@ class BusProfilePage extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  
-                  // Mock Review Card
-                  const _ReviewCard(
-                    name: 'Sarah J.',
-                    time: '15 mins ago',
-                    rating: 5,
-                    text: 'Clean bus, driver was very helpful when I asked about connections.',
+
+                  reviewsAsync.when(
+                    data: (reviews) => reviews.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                            child: Text(
+                              'No reviews yet.',
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            ),
+                          )
+                        : _ReviewCard(review: reviews.first),
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(AppSpacing.lg),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, _) => Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Text('Could not load reviews: $error'),
+                    ),
                   ),
-                  
-                  // Mock Review Card
-                  // (Review card replaced by _ReviewCard)
                   const SizedBox(height: AppSpacing.lg),
 
                   // Crowd Level Card
@@ -377,46 +400,23 @@ class BusProfilePage extends ConsumerWidget {
                 ),
                 const Divider(),
                 Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
-                    children: const [
-                      _ReviewCard(
-                        name: 'Sarah J.',
-                        time: '15 mins ago',
-                        rating: 5,
-                        text: 'Clean bus, driver was very helpful when I asked about connections.',
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                      _ReviewCard(
-                        name: 'Rahim U.',
-                        time: '2 hours ago',
-                        rating: 4,
-                        text: 'A bit crowded today but reached on time.',
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                      _ReviewCard(
-                        name: 'Aisha K.',
-                        time: '1 day ago',
-                        rating: 5,
-                        text: 'Felt very safe during the evening commute. Good lighting inside.',
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                      _ReviewCard(
-                        name: 'Mehedi H.',
-                        time: '2 days ago',
-                        rating: 3,
-                        text: 'Bus was delayed by 10 minutes due to traffic at Farmgate.',
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                      _ReviewCard(
-                        name: 'Nusrat F.',
-                        time: '3 days ago',
-                        rating: 5,
-                        text: 'Extremely comfortable seats and AC was working perfectly.',
-                      ),
-                      SizedBox(height: AppSpacing.xxl),
-                    ],
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final reviewsAsync = ref.watch(reviewsProvider(ride.id));
+                      return reviewsAsync.when(
+                        data: (reviews) => reviews.isEmpty
+                            ? const Center(child: Text('No reviews yet.'))
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.all(AppSpacing.screenPaddingHorizontal),
+                                itemCount: reviews.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+                                itemBuilder: (context, index) => _ReviewCard(review: reviews[index]),
+                              ),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (error, _) => Center(child: Text('Could not load reviews: $error')),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -542,22 +542,15 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _ReviewCard extends StatelessWidget {
-  final String name;
-  final String time;
-  final int rating;
-  final String text;
+  final Review review;
 
-  const _ReviewCard({
-    required this.name,
-    required this.time,
-    required this.rating,
-    required this.text,
-  });
+  const _ReviewCard({required this.review});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final starCount = review.rating.round().clamp(0, 5);
 
     return Card(
       elevation: 0,
@@ -586,8 +579,8 @@ class _ReviewCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(name, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(time, style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      Text(review.reviewerName, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(_timeAgo(review.createdAt), style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -595,17 +588,19 @@ class _ReviewCard extends StatelessWidget {
                     children: List.generate(
                       5,
                       (index) => Icon(
-                        index < rating ? Icons.star : Icons.star_border,
+                        index < starCount ? Icons.star : Icons.star_border,
                         size: 16,
                         color: Colors.amber,
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    text,
-                    style: textTheme.bodyMedium,
-                  ),
+                  if (review.text != null && review.text!.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      review.text!,
+                      style: textTheme.bodyMedium,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -28,6 +28,7 @@ class SupabaseJourneyRepository implements JourneyRepository {
   Future<Journey> startJourney({
     required String userId,
     String? routeId,
+    String? busName,
     String? originName,
     String? originPlaceId,
     required double originLatitude,
@@ -40,9 +41,21 @@ class SupabaseJourneyRepository implements JourneyRepository {
     double? distanceKm,
     bool liveTrackingEnabled = true,
   }) async {
+    // A bus name with no matching route (a brand-new bus, or one the
+    // commuter typed rather than picked) gets resolved to an existing
+    // route or a newly-created one, server-side, atomically — see
+    // supabase/route_matching.sql.
+    var resolvedRouteId = routeId;
+    if (resolvedRouteId == null && busName != null && busName.trim().isNotEmpty) {
+      final route = await _client.rpc('find_or_create_route_by_name', params: {
+        'p_bus_name': busName,
+      });
+      resolvedRouteId = (route as Map<String, dynamic>)['id'] as String?;
+    }
+
     final payload = <String, dynamic>{
       'user_id': userId,
-      'route_id': routeId,
+      'route_id': resolvedRouteId,
       'origin_name': originName,
       'origin_place_id': originPlaceId,
       'origin_latitude': originLatitude,
