@@ -119,7 +119,7 @@ class BusProfilePage extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      'Bus ${ride.routeNumber} - ${ride.routeName}',
+                      ride.routeName,
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
@@ -205,7 +205,7 @@ class BusProfilePage extends ConsumerWidget {
                         child: _InfoCard(
                           icon: Icons.verified_user_outlined,
                           title: 'SAFETY SCORE',
-                          value: '${ride.safetyScore}%',
+                          value: ride.safetyScore != null ? '${ride.safetyScore}%' : 'Unrated',
                         ),
                       ),
                     ],
@@ -245,64 +245,6 @@ class BusProfilePage extends ConsumerWidget {
                     error: (error, _) => Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Text('Could not load reviews: $error'),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // Crowd Level Card
-                  Card(
-                    elevation: 0,
-                    color: const Color(0xFFF0F1F5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.medium),
-                      side: BorderSide(
-                        color: colorScheme.outline.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
-                        horizontal: AppSpacing.md,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.xs),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.groups, size: 20, color: colorScheme.primary),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Crowd Level',
-                                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      '10 mins ago',
-                                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'Moderate crowd at the previous stop.',
-                                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),

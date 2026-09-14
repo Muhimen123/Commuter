@@ -163,30 +163,43 @@ class _RecommendedBadge extends StatelessWidget {
 }
 
 class _SafetyScoreBox extends StatelessWidget {
-  final int safetyScore;
+  final int? safetyScore;
 
   const _SafetyScoreBox({required this.safetyScore});
+
+  /// Pastel green→yellow→red, keyed off [score] (0-100): red below the
+  /// midpoint, green above it, blended toward white to keep it soft.
+  static Color _colorForScore(int score) {
+    final t = (score / 100).clamp(0.0, 1.0);
+    final hue = t < 0.5
+        ? Color.lerp(AppColors.safetyDanger, AppColors.safetyWarning, t / 0.5)!
+        : Color.lerp(AppColors.safetyWarning, AppColors.safetySafe, (t - 0.5) / 0.5)!;
+    return Color.lerp(hue, Colors.white, 0.35)!;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final score = safetyScore;
+    final backgroundColor = score != null ? _colorForScore(score) : colorScheme.primaryContainer;
+    final foregroundColor = score != null ? AppColors.onSurface : colorScheme.onPrimaryContainer;
     return Container(
       width: 64,
       height: 64,
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.verified_user, size: 20, color: colorScheme.onPrimaryContainer),
+          Icon(Icons.verified_user, size: 20, color: foregroundColor),
           const SizedBox(height: 2),
           Text(
-            '$safetyScore%',
+            score != null ? '$score%' : 'Unrated',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
+                  color: foregroundColor,
                   fontWeight: FontWeight.bold,
                 ),
           ),

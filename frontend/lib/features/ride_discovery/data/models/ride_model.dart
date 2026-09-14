@@ -25,10 +25,15 @@ class RideModel extends Ride {
 
   /// [ratingSummary] is `(averageRating, reviewCount)`, computed from rated
   /// post-ride surveys — `null` when the route has no reviews yet.
+  ///
+  /// [safetySummary] is `(averageSafetyRating, surveyCount)`, computed from
+  /// rated post-ride surveys' `safety_rating` — `null` when the route has no
+  /// rated surveys yet, in which case the route is shown as "Unrated".
   factory RideModel.fromJson(
     Map<String, dynamic> json, {
     String? via,
     (double, int)? ratingSummary,
+    (double, int)? safetySummary,
   }) {
     return RideModel(
       id: json['id'] as String,
@@ -39,7 +44,7 @@ class RideModel extends Ride {
       status: _statusFromString(json['current_status'] as String?),
       rating: ratingSummary?.$1 ?? 0,
       reviewCount: ratingSummary?.$2 ?? 0,
-      safetyScore: _safetyScoreToPercent(json['safety_score'] as num?),
+      safetyScore: safetySummary == null ? null : _safetyScoreToPercent(safetySummary.$1),
       fare: (json['average_fare'] as num?)?.toDouble() ?? 0,
       transitMode: _transitModeFromString(json['transit_mode'] as String?),
       lineCode: json['line_code'] as String?,

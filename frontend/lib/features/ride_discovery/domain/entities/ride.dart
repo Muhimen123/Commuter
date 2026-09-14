@@ -11,7 +11,10 @@ class Ride {
   final RideStatus status;
   final double rating;
   final int reviewCount;
-  final int safetyScore;
+  /// Percent (0-100) average of rider-reported `safety_rating` from
+  /// completed post-ride surveys — `null` when the route has no rated
+  /// surveys yet ("Unrated").
+  final int? safetyScore;
   final double fare;
   final bool isRecommended;
   final TransitMode transitMode;
