@@ -1,7 +1,47 @@
 import '../../domain/entities/profile_entity.dart';
+import '../../domain/entities/ride_history_entry.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class DummyProfileRepositoryImpl implements ProfileRepository {
+  @override
+  Future<List<RideHistoryEntry>> getRideHistory() async {
+    final now = DateTime.now();
+    return [
+      RideHistoryEntry(
+        id: '1',
+        routeLabel: 'Bus Route 42',
+        destinationName: 'Motijheel',
+        startedAt: now.subtract(const Duration(days: 1)),
+        farePaid: 2.50,
+        status: RideHistoryStatus.completed,
+      ),
+      RideHistoryEntry(
+        id: '2',
+        routeLabel: 'Evening Train Commute',
+        destinationName: 'Kamalapur',
+        startedAt: now.subtract(const Duration(days: 3)),
+        farePaid: 4.75,
+        status: RideHistoryStatus.completed,
+      ),
+      RideHistoryEntry(
+        id: '3',
+        routeLabel: 'Morning Express 101',
+        destinationName: 'Farmgate',
+        startedAt: now.subtract(const Duration(days: 4)),
+        farePaid: 3.00,
+        status: RideHistoryStatus.completed,
+      ),
+      RideHistoryEntry(
+        id: '4',
+        routeLabel: 'Downtown Shuttle',
+        destinationName: 'Banani',
+        startedAt: now.subtract(const Duration(days: 5)),
+        farePaid: 1.50,
+        status: RideHistoryStatus.completed,
+      ),
+    ];
+  }
+
   @override
   Future<ProfileEntity> getProfileData() async {
     // Simulate slight latency or immediate return of mock data matching reference design
