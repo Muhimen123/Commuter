@@ -48,24 +48,39 @@ class SupabaseRideRepository implements RideRepository {
     }
 
     final ratingSummaries = await _ratingSummaries(routeIds);
+    final safetySummaries = await _safetySummaries(routeIds);
 
     return routeRows
         .map((row) => RideModel.fromJson(
               row,
               via: viaByRouteId[row['id']],
               ratingSummary: ratingSummaries[row['id']],
+              safetySummary: safetySummaries[row['id']],
             ))
         .toList(growable: false);
   }
 
-  Future<Map<String, (double, int)>> _ratingSummaries(List<String> routeIds) async {
+  Future<Map<String, (double, int)>> _ratingSummaries(List<String> routeIds) {
+    return _averageSummaries(routeIds, column: 'ride_rating');
+  }
+
+  Future<Map<String, (double, int)>> _safetySummaries(List<String> routeIds) {
+    return _averageSummaries(routeIds, column: 'safety_rating');
+  }
+
+  /// Averages [column] (a rating column on [_surveysTable]) per route, over
+  /// completed journeys where that column was actually rated.
+  Future<Map<String, (double, int)>> _averageSummaries(
+    List<String> routeIds, {
+    required String column,
+  }) async {
     if (routeIds.isEmpty) return const {};
 
     final rows = await _client
         .from(_surveysTable)
-        .select('ride_rating, journeys!inner(route_id, status)')
+        .select('$column, journeys!inner(route_id, status)')
         .eq('journeys.status', 'completed')
-        .not('ride_rating', 'is', null)
+        .not(column, 'is', null)
         .inFilter('journeys.route_id', routeIds);
 
     final totalsByRouteId = <String, double>{};
@@ -73,7 +88,7 @@ class SupabaseRideRepository implements RideRepository {
     for (final row in rows) {
       final journey = row['journeys'] as Map<String, dynamic>;
       final routeId = journey['route_id'] as String;
-      final rating = (row['ride_rating'] as num).toDouble();
+      final rating = (row[column] as num).toDouble();
       totalsByRouteId.update(routeId, (total) => total + rating, ifAbsent: () => rating);
       countsByRouteId.update(routeId, (count) => count + 1, ifAbsent: () => 1);
     }

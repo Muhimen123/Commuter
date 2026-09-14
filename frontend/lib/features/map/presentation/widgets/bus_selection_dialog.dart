@@ -74,7 +74,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
   void _onSuggestionSelected(Ride bus) {
     setState(() {
       _selectedBusName =
-          '${bus.routeName} (${bus.destination} via ${bus.via}) · Safety ${bus.safetyScore}';
+          '${bus.routeName} (${bus.destination} via ${bus.via}) · Safety ${bus.safetyScore ?? 'Unrated'}';
       _selectedRouteId = bus.id;
       _searchController.text = _selectedBusName!;
     });
@@ -347,7 +347,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                                     ),
                                     const SizedBox(width: 2),
                                     Text(
-                                      '${bus.safetyScore}',
+                                      bus.safetyScore != null ? '${bus.safetyScore}' : '—',
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelLarge

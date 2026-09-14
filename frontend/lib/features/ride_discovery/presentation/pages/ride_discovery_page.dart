@@ -48,7 +48,8 @@ class _RideDiscoveryPageState extends ConsumerState<RideDiscoveryPage> {
     if (_selectedFilter == 'Highly Rated') {
       displayedRides.sort((a, b) => b.rating.compareTo(a.rating));
     } else if (_selectedFilter == 'Safest Routes') {
-      displayedRides.sort((a, b) => b.safetyScore.compareTo(a.safetyScore));
+      // Unrated routes (null safetyScore) sort last, not first.
+      displayedRides.sort((a, b) => (b.safetyScore ?? -1).compareTo(a.safetyScore ?? -1));
     } else if (_selectedFilter == 'Lowest Fare') {
       displayedRides.sort((a, b) => a.fare.compareTo(b.fare));
     }
