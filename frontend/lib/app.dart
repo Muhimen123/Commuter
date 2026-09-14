@@ -93,8 +93,13 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/login',
-      pageBuilder: (context, state) =>
-          slideTransitionPage(state: state, child: const LoginPage()),
+      pageBuilder: (context, state) {
+        final email = state.extra as String?;
+        return slideTransitionPage(
+          state: state,
+          child: LoginPage(initialEmail: email),
+        );
+      },
     ),
     GoRoute(
       path: '/signup',
