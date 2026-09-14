@@ -49,6 +49,7 @@ class SupabaseRideRepository implements RideRepository {
 
     final ratingSummaries = await _ratingSummaries(routeIds);
     final safetySummaries = await _safetySummaries(routeIds);
+    final fareSummaries = await _fareSummaries(routeIds);
 
     return routeRows
         .map((row) => RideModel.fromJson(
@@ -56,6 +57,7 @@ class SupabaseRideRepository implements RideRepository {
               via: viaByRouteId[row['id']],
               ratingSummary: ratingSummaries[row['id']],
               safetySummary: safetySummaries[row['id']],
+              fareSummary: fareSummaries[row['id']],
             ))
         .toList(growable: false);
   }
@@ -68,8 +70,10 @@ class SupabaseRideRepository implements RideRepository {
     return _averageSummaries(routeIds, column: 'safety_rating');
   }
 
-  /// Averages [column] (a rating column on [_surveysTable]) per route, over
-  /// completed journeys where that column was actually rated.
+  Future<Map<String, (double, int)>> _fareSummaries(List<String> routeIds) {
+    return _averageSummaries(routeIds, column: 'fare_paid');
+  }
+
   Future<Map<String, (double, int)>> _averageSummaries(
     List<String> routeIds, {
     required String column,
