@@ -119,7 +119,7 @@ class BusProfilePage extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      'Bus ${ride.routeNumber} - ${ride.routeName}',
+                      ride.routeName,
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,

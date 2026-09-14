@@ -74,7 +74,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
   void _onSuggestionSelected(Ride bus) {
     setState(() {
       _selectedBusName =
-          '${bus.routeNumber} - ${bus.routeName} (${bus.destination} via ${bus.via})';
+          '${bus.routeName} (${bus.destination} via ${bus.via}) · Safety ${bus.safetyScore}';
       _selectedRouteId = bus.id;
       _searchController.text = _selectedBusName!;
     });
@@ -206,8 +206,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
           }
           return _filteredBuses(rides);
         },
-        displayStringForOption: (Ride bus) =>
-            '${bus.routeNumber} - ${bus.routeName}',
+        displayStringForOption: (Ride bus) => bus.routeName,
         fieldViewBuilder:
             (
               BuildContext context,
@@ -367,7 +366,7 @@ class _BusSelectionDialogState extends ConsumerState<BusSelectionDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${bus.routeNumber} - ${bus.routeName}',
+                                      bus.routeName,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
