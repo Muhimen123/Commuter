@@ -52,16 +52,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       }
     } catch (e) {
       if (mounted) {
-        final message = e
-            .toString()
-            .replaceAll('Exception: ', '')
-            .replaceAll('AuthException(message: ', '')
-            .replaceAll(')', '');
         CommuterToast.show(
           context,
-          message: message.isNotEmpty
-              ? message
-              : 'Failed to send verification code. Please try again.',
+          message: 'Something went wrong. Please try again.',
           icon: Icons.error_outline,
           backgroundColor: Theme.of(context).colorScheme.errorContainer,
           foregroundColor: Theme.of(context).colorScheme.onErrorContainer,

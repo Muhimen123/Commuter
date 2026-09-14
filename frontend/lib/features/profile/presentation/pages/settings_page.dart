@@ -10,9 +10,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _locationEnabled = true;
   bool _contactsEnabled = false;
-  bool _darkModeEnabled = false;
   bool _notificationsEnabled = true;
-  String _distanceMetric = 'Km'; // 'Km' or 'Miles'
 
   @override
   Widget build(BuildContext context) {
@@ -37,28 +35,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const Divider(),
           _buildSectionHeader('Preferences'),
-          SwitchListTile(
-            title: const Text('Dark Mode'),
-            subtitle: const Text('Toggle app theme appearance'),
-            value: _darkModeEnabled,
-            onChanged: (val) => setState(() => _darkModeEnabled = val),
-          ),
-          ListTile(
-            title: const Text('Distance Metric'),
-            subtitle: const Text('Select distance display measurement'),
-            trailing: SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'Km', label: Text('Km')),
-                ButtonSegment(value: 'Miles', label: Text('Mi')),
-              ],
-              selected: {_distanceMetric},
-              onSelectionChanged: (Set<String> newSelection) {
-                setState(() {
-                  _distanceMetric = newSelection.first;
-                });
-              },
-            ),
-          ),
           SwitchListTile(
             title: const Text('Push Notifications'),
             subtitle: const Text('Receive security alerts and ride updates'),

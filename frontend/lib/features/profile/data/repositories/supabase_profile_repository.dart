@@ -1,11 +1,69 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../domain/entities/ride_history_entry.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class SupabaseProfileRepositoryImpl implements ProfileRepository {
   final SupabaseClient _client;
 
   SupabaseProfileRepositoryImpl(this._client);
+
+  @override
+  Future<List<RideHistoryEntry>> getRideHistory() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+
+    final rows = await _client
+        .from('journeys')
+        .select(
+          'id, status, started_at, destination_name, route_id, routes(route_name), post_ride_surveys(fare_paid)',
+        )
+        .eq('user_id', user.id)
+        .order('started_at', ascending: false);
+
+    return rows.map((row) {
+      final route = row['routes'];
+      String? routeName;
+      if (route is List && route.isNotEmpty) {
+        routeName = route[0]['route_name'] as String?;
+      } else if (route is Map) {
+        routeName = route['route_name'] as String?;
+      }
+
+      final surveys = row['post_ride_surveys'];
+      num? farePaid;
+      if (surveys is List && surveys.isNotEmpty) {
+        farePaid = surveys[0]['fare_paid'] as num?;
+      } else if (surveys is Map) {
+        farePaid = surveys['fare_paid'] as num?;
+      }
+
+      final destinationName = row['destination_name'] as String?;
+
+      return RideHistoryEntry(
+        id: row['id'] as String,
+        routeLabel: routeName ?? (destinationName ?? 'Custom Route'),
+        destinationName: destinationName,
+        startedAt: DateTime.parse(row['started_at'] as String),
+        farePaid: farePaid?.toDouble(),
+        status: _statusFromString(row['status'] as String?),
+      );
+    }).toList(growable: false);
+  }
+
+  RideHistoryStatus _statusFromString(String? value) {
+    switch (value) {
+      case 'active':
+        return RideHistoryStatus.active;
+      case 'cancelled':
+        return RideHistoryStatus.cancelled;
+      case 'completed':
+      default:
+        return RideHistoryStatus.completed;
+    }
+  }
 
   @override
   Future<ProfileEntity> getProfileData() async {
