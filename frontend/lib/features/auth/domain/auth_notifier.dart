@@ -44,7 +44,7 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
     });
   }
 
-  /// Signs up a new user and persists their session.
+  /// Signs up a new user without persisting their session so they must log in first.
   Future<void> signUp({
     required String fullName,
     required String email,
@@ -53,15 +53,16 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final user = await _repository.signUp(
+      await _repository.signUp(
         fullName: fullName,
         email: email,
         phoneNumber: phoneNumber,
         password: password,
       );
-      return user;
+      return null;
     });
   }
+
 
   /// Sends a password reset OTP to the specified [email].
   Future<void> sendPasswordResetOtp(String email) async {

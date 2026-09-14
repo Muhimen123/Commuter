@@ -57,8 +57,7 @@ class FakeAuthRepository implements AuthRepository {
       createdAt: DateTime.utc(2025, 1, 1),
       updatedAt: DateTime.utc(2025, 1, 1),
     );
-    currentUser = user;
-    _authChangesController.add(user);
+    currentUser = null;
     return user;
   }
 
@@ -169,7 +168,7 @@ void main() {
       restoredContainer.dispose();
     });
 
-    test('signUp transitions to loading then stores real AuthUser', () async {
+    test('signUp transitions to loading then leaves state unauthenticated so user must log in first', () async {
       final future = container.read(authProvider.notifier).signUp(
             fullName: 'Jane Doe',
             email: 'jane@example.com',
@@ -183,12 +182,7 @@ void main() {
 
       final state = container.read(authProvider);
       expect(state.hasValue, isTrue);
-
-      final user = state.value!;
-      expect(user.id, equals('test-new-user-456'));
-      expect(user.fullName, equals('Jane Doe'));
-      expect(user.email, equals('jane@example.com'));
-      expect(user.phoneNumber, equals('+880 1401234567'));
+      expect(state.value, isNull);
     });
 
     test('signIn transitions to loading then stores AuthUser', () async {
